@@ -597,7 +597,14 @@
             allSessions.forEach(s => {
                 (s.confirmed_schedules || []).forEach(m => {
                     if(!calendarMap[m.date]) calendarMap[m.date] = [];
-                    calendarMap[m.date].push({ time: m.time, color: s.banner_color?.startsWith('custom') ? s.banner_color.split('|')[1] : (s.banner_color || '#4f46e5'), title: s.title, id: s.id, space_code: s.space_code, rule: s.rule });
+                    calendarMap[m.date].push({ 
+                        time: m.time, 
+                        color: s.banner_color?.startsWith('custom') ? s.banner_color.split('|')[1] : (s.banner_color || '#4f46e5'),
+                        title: s.title,
+                        id: s.id,
+                        space_code: s.space_code,
+                        rule: s.rule
+                    });
                 });
             });
 
@@ -662,7 +669,7 @@
             plGrid.innerHTML = pls.length === 0 ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">참여 중인 세션이 없습니다.</div>` : pls.map(s => generateSessionCardHTML(s, tempMap[s.id])).join(''); 
         }
 
-        // ✅ V3.6.4 핫패치: 달력 레이아웃 모바일 붕괴 방지 (min-w-0 및 block w-full 추가)
+        // ✅ V3.6.5 핫패치: 달력 레이아웃 모바일 붕괴 방지 (min-w-0 및 block w-full 추가)
         function renderMasterCalendar() { 
             const year = masterDate.getFullYear(), month = masterDate.getMonth(); 
             document.getElementById('master-month-title').innerText = `${year}.${String(month+1).padStart(2,'0')}`; 
@@ -697,7 +704,9 @@
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button type="button" onclick="removeConfirmedSchedule(${idx})" class="hover-base text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
             const { data: avs } = await client.from('session_availability').select(`*, users(nickname, avatar_url)`).eq('session_id', s.id);
-            roomAvailsCache = avs || []; closeTimeline(); renderHeatmap(roomAvailsCache, mbs.length + 1);
+            roomAvailsCache = avs || []; closeTimeline(); 
+            // ✅ V3.6.5 핫패치: 일정 확정 타일 렌더링을 위해 s.confirmed_schedules 배열을 파라미터로 주입
+            renderHeatmap(roomAvailsCache, mbs.length + 1, s.confirmed_schedules || []);
             const mavs = roomAvailsCache.filter(a => a.user_id === userState.id).sort((a,b) => new Date(a.available_date) - new Date(b.available_date));
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="text-red-400 hover:text-red-600 text-base font-black px-2 hover-base hover:-translate-y-0.5">×</button></div>`).join('');
         }
@@ -705,30 +714,41 @@
         // ✅ V3.6.4 핫패치: 툴팁 꼬리(Tail) CSS Transform 충돌을 무효화하는 인라인 스타일 적용
         window.showTooltip = (el, title, raw) => { 
             const tt = document.getElementById('global-tooltip'); 
-            tt.innerHTML = `<div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white">${title}</div><div class="bg-white">${raw}</div><div class="absolute -bottom-[7px] w-3.5 h-3.5 bg-white border-b-2 border-r-2 border-indigo-100" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`; 
+            tt.innerHTML = `<div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white">${title}</div><div class="bg-white">${raw}</div><div class="absolute -bottom-[6px] w-3.5 h-3.5 bg-white border-b-2 border-r-2 border-indigo-100" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`; 
             tt.classList.remove('hidden'); 
             const r = el.getBoundingClientRect(); 
             tt.style.left = (r.left + (r.width/2) - (tt.offsetWidth/2)) + 'px'; 
-            tt.style.top = (window.scrollY + r.top - 15) + 'px'; 
+            tt.style.top = (window.scrollY + r.top - tt.offsetHeight - 10) + 'px'; 
             setTimeout(() => tt.classList.add('opacity-100'), 10); 
         };
         window.hideTooltip = () => { const tt = document.getElementById('global-tooltip'); tt.classList.remove('opacity-100'); tt.classList.add('hidden'); };
         document.addEventListener('touchstart', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); }, {passive: true});
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
 
-        function renderHeatmap(avs, tMs) { 
+        // ✅ V3.6.5 핫패치: 일정 확정 타일에 형광 노란색 이너 보더(Inner Border) 및 ✅ 뱃지 추가
+        function renderHeatmap(avs, tMs, confSchedules = []) { 
             const dM = {}; 
             avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
             const sDs = Object.keys(dM).sort(), hm = document.getElementById('room-heatmap'); 
+            const cDates = confSchedules.map(x => x.date);
             
             let htmlBuffer = sDs.length === 0 ? `<div class="col-span-full py-10 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border border-slate-100">일정을 등록해 주세요!</div>` : sDs.map(date => { 
                 const dayAvs = dM[date], cnt = new Set(dayAvs.map(x => x.user_id)).size; 
                 let cCls = 'hm-0'; if(cnt > 0) cCls = 'hm-1'; if(cnt >= tMs/2) cCls = 'hm-2'; if(cnt >= tMs-1) cCls = 'hm-3'; if(cnt === tMs && tMs > 1) cCls = 'hm-max'; 
+                
+                const isConf = cDates.includes(date);
+                if (isConf) {
+                    cCls += ' ring-[3px] md:ring-4 ring-inset ring-yellow-400 shadow-[inset_0_0_15px_rgba(250,204,21,0.5)]';
+                }
+
                 const dO = new Date(date), m = date.split('-')[1], d = date.split('-')[2], w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); 
                 
                 const list = escapeHTML(dayAvs.map(a => `<div class="flex justify-between border-b border-indigo-50 gap-3 text-[9px] py-0.5"><span class="font-bold truncate">${a.users?.nickname || '알 수 없음'}</span><span class="text-indigo-500 font-mono flex-shrink-0">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div>`).join('')); 
                 
-                return `<div class="heatmap-cell ${cCls} flex flex-col justify-center items-center relative hover-base hover:scale-[1.02]" onmouseenter="showTooltip(this, '${m}/${d}', '${list}')" onmouseleave="hideTooltip()" onclick="openTimeline('${date}')">${cnt === tMs && tMs > 1 ? `<div class="absolute -top-2 -right-1 text-sm drop-shadow-md">👑</div>` : ''}<span class="text-[8px] opacity-80 font-bold">${m}월</span><span class="text-sm md:text-xl font-black">${d}일</span><span class="text-[8px] mb-0.5 font-bold">(${w})</span><span class="text-[8px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold shadow-inner">${cnt}명</span></div>`; 
+                return `<div class="heatmap-cell ${cCls} flex flex-col justify-center items-center relative hover-base hover:scale-[1.02]" onmouseenter="showTooltip(this, '${m}/${d}', '${list}')" onmouseleave="hideTooltip()" onclick="openTimeline('${date}')">
+                    ${isConf ? `<div class="absolute -top-2 -left-2 md:-left-3 text-[10px] md:text-sm bg-yellow-400 text-slate-800 px-1.5 py-0.5 rounded-full font-black drop-shadow-md z-30 border-2 border-white">✅ 확정</div>` : ''}
+                    ${cnt === tMs && tMs > 1 ? `<div class="absolute -top-2 -right-1 text-sm drop-shadow-md z-20">👑</div>` : ''}
+                    <span class="text-[8px] opacity-80 font-bold">${m}월</span><span class="text-sm md:text-xl font-black">${d}일</span><span class="text-[8px] mb-0.5 font-bold">(${w})</span><span class="text-[8px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold shadow-inner">${cnt}명</span></div>`; 
             }).join(''); 
             
             hm.innerHTML = htmlBuffer;
