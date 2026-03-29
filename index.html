@@ -42,6 +42,7 @@
     <header class="bg-indigo-700 text-white p-3 md:p-4 shadow-xl sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center gap-2">
             <h1 class="text-[11px] sm:text-sm md:text-xl font-black tracking-tight cursor-pointer truncate pr-1 flex-shrink-0" onclick="goHome()" title="허브로 돌아가기">🎲 TRPG Uni-Sched</h1>
+            
             <div id="header-space-info" class="hidden flex-1 flex justify-center items-center gap-1.5 md:gap-4 overflow-hidden px-1">
                 <span id="header-space-name" class="text-xs md:text-base font-black truncate max-w-[80px] md:max-w-xs text-indigo-100"></span>
                 <button onclick="copySpaceCode()" class="flex items-center gap-1 bg-indigo-800 hover:bg-indigo-900 border border-indigo-500/50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="초대 코드 복사">
@@ -50,6 +51,7 @@
                 <button id="btn-delete-space" onclick="deleteSpace()" class="hidden bg-red-600 hover:bg-red-700 text-white border border-red-500/50 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="공간 영구 삭제">🗑️ <span class="hidden sm:inline">삭제</span></button>
                 <button onclick="exitSpace()" class="bg-indigo-600/50 hover:bg-indigo-500/80 text-indigo-100 border border-indigo-400/30 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
             </div>
+
             <div id="auth-ui" class="flex-shrink-0 flex items-center">
                 <button id="btn-login" class="bg-white text-indigo-700 px-3 md:px-6 py-1.5 md:py-2 rounded-xl md:rounded-2xl font-bold hover-base btn-indigo-hover text-xs md:text-base hidden">구글 로그인</button>
                 <div id="user-profile" class="hidden flex items-center gap-2 md:gap-3 bg-indigo-800/60 p-1 md:p-1.5 pr-4 md:pr-5 rounded-full border border-indigo-400/40 cursor-pointer hover-base btn-indigo-hover" onclick="handleProfileClick()" title="프로필/마이페이지 열기/닫기">
@@ -220,13 +222,20 @@
             } 
         });
 
+        // [핵심 패치: 3중 방어막 추가 (아바타/닉네임)]
         async function updateProfile(user) { 
             userState = user; toggle('user-profile', true); 
             const { data } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
-            const dN = data?.nickname || user.user_metadata.full_name, aU = data?.avatar_url || user.user_metadata.avatar_url; 
+            
+            // 데이터가 없거나 구글 메타데이터 이름이 다를 경우 완벽하게 방어!
+            const dN = data?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || '새로운 모험가'; 
+            const aU = data?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || ''; 
+            
             document.getElementById('display-name').innerText = dN; 
             document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
-            await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }); 
+            
+            // 만약 DB가 튕겨내더라도 화면 표시는 진행하도록 에러 무시
+            await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }).catch(() => {}); 
 
             if (isInitialLogin) {
                 isInitialLogin = false;
@@ -403,7 +412,8 @@
         };
         document.getElementById('btn-studio-revert').onclick = async () => { 
             if(studioTarget === "user") { 
-                const newUrl = userState.user_metadata.avatar_url; const n = document.getElementById('studio-nick-input').value.trim();
+                const newUrl = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || ''; 
+                const n = document.getElementById('studio-nick-input').value.trim();
                 await client.from('users').update({ avatar_url: newUrl, nickname: n }).eq('id', userState.id); 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
@@ -430,7 +440,16 @@
         window.toggleLobbyFilterTag = (tag) => { if (filterTags.includes(tag)) filterTags = filterTags.filter(t => t !== tag); else filterTags.push(tag); renderFilterTagsUI(); renderLobbyGrid(); };
         window.clearFilterTags = () => { filterTags = []; renderFilterTagsUI(); renderLobbyGrid(); };
 
-        function generateSessionCardHTML(s, memList = allMembers) { const mbs = memList.filter(m => m.session_id === s.id), isFull = mbs.length >= s.capacity, ts = s.tags || []; const sBadge = (s.confirmed_schedules && s.confirmed_schedules.length > 0) ? `<span class="bg-green-100 text-green-700 badge-status shadow-sm">일정 확정</span>` : `<span class="bg-indigo-100 text-indigo-700 badge-status shadow-sm">모집 중</span>`; const bH = renderCustomBoxHTML(s.banner_color || '#4f46e5', 'min-h-[5.5rem] md:min-h-[6.5rem] w-full p-4 md:p-5 flex flex-col justify-between relative', true); return `<div onclick="goRoomDirectly('${s.id}', '${s.space_code}')" class="session-card bg-white rounded-3xl md:rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col text-left h-full">${bH.replace('relative', 'relative z-0').replace('</div>', `<div class="absolute inset-0 z-10 p-4 md:p-5 flex flex-col justify-between"><div class="flex justify-between items-start"><span class="bg-white/20 backdrop-blur-md text-white text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 rounded-full border border-white/30 uppercase shadow-sm">${s.location_type}</span>${sBadge}</div><div class="flex flex-wrap justify-end gap-y-1">${ts.map(t => `<span class="text-[9px] font-black text-white drop-shadow-md ml-1.5">#${t}</span>`).join('')}</div></div></div>`)}<div class="p-5 md:p-6 flex-grow flex flex-col"><p class="text-[9px] md:text-[10px] font-black text-indigo-500 mb-1 tracking-tighter uppercase">${s.rule || '자유 룰'}</p><h4 class="text-sm md:text-base font-black text-slate-800 mb-2 line-clamp-2 leading-tight">${s.title}</h4><div class="mt-auto pt-4 flex justify-between items-center"><span class="text-[9px] font-bold text-slate-500 truncate mr-2">GM: ${s.creator?.nickname || '알 수 없음'}</span><span class="text-[10px] md:text-[11px] font-black flex-shrink-0 ${isFull ? 'text-red-400' : 'text-slate-400'}">👤 ${mbs.length}/${s.capacity}</span></div></div></div>`; }
+        // [핵심 패치: '알 수 없음' 에러 방어를 위해 ?. 옵셔널 체이닝 떡칠 적용]
+        function generateSessionCardHTML(s, memList = allMembers) { 
+            const mbs = memList.filter(m => m.session_id === s.id), isFull = mbs.length >= s.capacity, ts = s.tags || []; 
+            const sBadge = (s.confirmed_schedules && s.confirmed_schedules.length > 0) ? `<span class="bg-green-100 text-green-700 badge-status shadow-sm">일정 확정</span>` : `<span class="bg-indigo-100 text-indigo-700 badge-status shadow-sm">모집 중</span>`; 
+            const bH = renderCustomBoxHTML(s.banner_color || '#4f46e5', 'min-h-[5.5rem] md:min-h-[6.5rem] w-full p-4 md:p-5 flex flex-col justify-between relative', true); 
+            const gmName = s.creator?.nickname || '알 수 없음'; // 방어 코드
+
+            return `<div onclick="goRoomDirectly('${s.id}', '${s.space_code}')" class="session-card bg-white rounded-3xl md:rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col text-left h-full">${bH.replace('relative', 'relative z-0').replace('</div>', `<div class="absolute inset-0 z-10 p-4 md:p-5 flex flex-col justify-between"><div class="flex justify-between items-start"><span class="bg-white/20 backdrop-blur-md text-white text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 rounded-full border border-white/30 uppercase shadow-sm">${s.location_type}</span>${sBadge}</div><div class="flex flex-wrap justify-end gap-y-1">${ts.map(t => `<span class="text-[9px] font-black text-white drop-shadow-md ml-1.5">#${t}</span>`).join('')}</div></div></div>`)}<div class="p-5 md:p-6 flex-grow flex flex-col"><p class="text-[9px] md:text-[10px] font-black text-indigo-500 mb-1 tracking-tighter uppercase">${s.rule || '자유 룰'}</p><h4 class="text-sm md:text-base font-black text-slate-800 mb-2 line-clamp-2 leading-tight">${s.title}</h4><div class="mt-auto pt-4 flex justify-between items-center"><span class="text-[9px] font-bold text-slate-500 truncate mr-2">GM: ${gmName}</span><span class="text-[10px] md:text-[11px] font-black flex-shrink-0 ${isFull ? 'text-red-400' : 'text-slate-400'}">👤 ${mbs.length}/${s.capacity}</span></div></div></div>`; 
+        }
+
         function renderLobbyGrid() { const grid = document.getElementById('session-grid'); if(!grid) return; if(allSessions.length === 0) return grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">현재 생성된 세션이 없습니다. <br>새로운 모험을 열어보세요!</div>`; const filtered = allSessions.filter(s => { if (filterKeyword) { if (!s.title.toLowerCase().includes(filterKeyword) && !(s.rule || '').toLowerCase().includes(filterKeyword)) return false; } if (filterLoc !== 'all' && s.location_type !== filterLoc) return false; if (filterTags.length > 0 && !filterTags.every(t => (s.tags || []).includes(t))) return false; const mbs = allMembers.filter(m => m.session_id === s.id), isFull = mbs.length >= s.capacity, isC = s.confirmed_schedules && s.confirmed_schedules.length > 0; if (filterStatus && (isFull || isC)) return false; return true; }); if (filtered.length === 0) grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">조건에 맞는 세션이 없습니다.</div>`; else grid.innerHTML = filtered.map(s => generateSessionCardHTML(s)).join(''); }
         
         async function renderMypageGrids() { 
@@ -455,9 +474,13 @@
         async function renderRoom() {
             const s = allSessions.find(x => x.id === currentSessionId); if (!s) return goLobby();
             const isGM = s.creator_id === userState.id, mbs = allMembers.filter(m => m.session_id === s.id), isJ = mbs.some(m => m.user_id === userState.id);
-            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-20">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-800 drop-shadow-sm">${s.title} <span class="text-sm text-indigo-500">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-bold text-slate-500 mb-6">GM: ${s.creator?.nickname || '알 수 없음'}</div><p class="max-w-2xl text-xs md:text-sm text-slate-600 font-batang mb-8 leading-relaxed whitespace-pre-wrap">${s.description || '개요가 없습니다.'}</p><div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover:bg-red-100">취소</button>` : ''))}</div></div>`;
+            const gmName = s.creator?.nickname || '알 수 없음'; // 방어 코드
+
+            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-20">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-800 drop-shadow-sm">${s.title} <span class="text-sm text-indigo-500">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-bold text-slate-500 mb-6">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-600 font-batang mb-8 leading-relaxed whitespace-pre-wrap">${s.description || '개요가 없습니다.'}</p><div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover:bg-red-100">취소</button>` : ''))}</div></div>`;
             toggle('gm-control-panel', isGM);
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button onclick="removeConfirmedSchedule(${idx})" class="text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
+            
+            // 일정 데이터 호출
             const { data: avs } = await client.from('session_availability').select(`*, users(nickname, avatar_url)`).eq('session_id', s.id);
             roomAvailsCache = avs || []; closeTimeline(); renderHeatmap(roomAvailsCache, mbs.length + 1);
             const mavs = roomAvailsCache.filter(a => a.user_id === userState.id).sort((a,b) => new Date(a.available_date) - new Date(b.available_date));
@@ -469,7 +492,7 @@
         document.addEventListener('touchstart', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); }, {passive: true});
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
 
-        // [핵심 패치: 닉네임과 아바타 불러오기 에러(Null) 원천 차단 - '?.']
+        // [핵심 패치: '알 수 없음' 에러 방어를 위해 ?. 옵셔널 체이닝 떡칠 적용]
         function renderHeatmap(avs, tMs) { 
             const dM = {}; 
             avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
@@ -479,13 +502,11 @@
                 let cCls = 'hm-0'; if(cnt > 0) cCls = 'hm-1'; if(cnt >= tMs/2) cCls = 'hm-2'; if(cnt >= tMs-1) cCls = 'hm-3'; if(cnt === tMs && tMs > 1) cCls = 'hm-max'; 
                 const dO = new Date(date), m = date.split('-')[1], d = date.split('-')[2], w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); 
                 
-                // [방어코드 추가] a.users?.nickname || '알 수 없음'
                 const list = escapeHTML(dayAvs.map(a => `<div class="flex justify-between border-b border-indigo-50 gap-3 text-[9px] py-0.5"><span class="font-bold truncate">${a.users?.nickname || '알 수 없음'}</span><span class="text-indigo-500 font-mono flex-shrink-0">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div>`).join('')); 
                 
                 return `<div class="heatmap-cell ${cCls} flex flex-col justify-center items-center relative" onmouseenter="showTooltip(this, '${m}/${d}', '${list}')" onmouseleave="hideTooltip()" onclick="openTimeline('${date}')">${cnt === tMs && tMs > 1 ? `<div class="absolute -top-2 -right-1 text-sm drop-shadow-md">👑</div>` : ''}<span class="text-[8px] opacity-80 font-bold">${m}월</span><span class="text-sm md:text-xl font-black">${d}일</span><span class="text-[8px] mb-0.5 font-bold">(${w})</span><span class="text-[8px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold shadow-inner">${cnt}명</span></div>`; 
             }).join(''); 
             
-            // [방어코드 추가] u?.avatar_url
             document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
         }
 
@@ -496,7 +517,6 @@
             const dO = new Date(dateStr), m = String(dO.getMonth()+1).padStart(2,'0'), d = String(dO.getDate()).padStart(2,'0'), w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); 
             document.getElementById('timeline-date-title').innerText = `${m}/${d} (${w}) 타임라인`; 
             
-            // [방어코드 추가] a.users?.nickname || '알 수 없음'
             document.getElementById('timeline-bars').innerHTML = dayAvs.map(a => { 
                 const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = eP - sP; 
                 return `<div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users?.nickname || '알 수 없음'}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] font-mono font-black text-white opacity-0 group-hover:opacity-100 z-10 drop-shadow-md">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div>`; 
@@ -559,9 +579,7 @@
             }
             
             try {
-                // Delete & Insert 엔진으로 복구! (Supabase 에러 100% 무시)
                 await client.from('session_availability').delete().eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
-                
                 const { error } = await client.from('session_availability').insert(ps);
                 
                 if (error) {
