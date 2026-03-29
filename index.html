@@ -300,6 +300,7 @@
             } 
         });
 
+        // ✅ V3.6.2 핫패치: 프로필 업데이트 시 마이페이지(DOM) 요소까지 완벽하게 동기화 (State Sync)
         async function updateProfile(user) { 
             userState = user; toggle('user-profile', true); 
             const { data, error } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
@@ -311,8 +312,13 @@
                 await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }).catch(e => console.error("User upsert error:", e)); 
             }
             
+            // 상단 헤더 동기화
             document.getElementById('display-name').innerText = dN; 
             document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
+            
+            // 마이페이지 동기화
+            document.getElementById('mypage-nick-input').value = dN;
+            document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-full h-full rounded-full object-cover');
 
             if (isInitialLogin) {
                 isInitialLogin = false;
@@ -515,6 +521,7 @@
             document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
         };
         
+        // ✅ V3.6.2 핫패치: 저장 시 마이페이지 UI DOM 100% 동기화 적용
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
             if(studioTarget === "user") { 
@@ -524,6 +531,11 @@
                 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
+                
+                // 마이페이지 강제 동기화
+                document.getElementById('mypage-nick-input').value = n;
+                document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-full h-full rounded-full object-cover');
+                
                 if (!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids(); 
             } else { 
                 tempSessionBanner = newUrl; 
@@ -532,6 +544,7 @@
             closeAvatarModal(); 
         };
 
+        // ✅ V3.6.2 핫패치: 복구 시 마이페이지 UI DOM 100% 동기화 적용
         document.getElementById('btn-studio-revert').onclick = async () => { 
             if(studioTarget === "user") { 
                 const newUrl = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || ''; 
@@ -541,6 +554,11 @@
 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
+                
+                // 마이페이지 강제 동기화
+                document.getElementById('mypage-nick-input').value = n;
+                document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-full h-full rounded-full object-cover');
+                
                 if (!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids(); 
             } else { 
                 tempSessionBanner = "#4f46e5"; 
@@ -551,11 +569,9 @@
         
         function updateBannerPreview() { document.getElementById('session-banner-preview').innerHTML = renderCustomBoxHTML(tempSessionBanner, 'w-full h-full flex items-center justify-center', true, true); }
         
-        // ✅ V3.6.1 핫패치: 프로필 사진 덮어쓰기(State Leak) 버그 수정
         window.saveMypageNickname = async () => { 
             const n = document.getElementById('mypage-nick-input').value.trim(); 
             if (n && userState) { 
-                // 아바타는 건드리지 않고 닉네임만 update하여 커스텀 데이터 유실 방지
                 const { error } = await client.from('users').update({ nickname: n }).eq('id', userState.id); 
                 if (error) return alert("닉네임 변경 오류: " + error.message);
                 document.getElementById('display-name').innerText = n; 
@@ -744,7 +760,6 @@
             }
         };
 
-        // ✅ V3.6.1 핫패치: 일정 등록 시 시간 역전 방어 및 에러 핸들링
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
