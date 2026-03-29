@@ -49,7 +49,6 @@
                     <span id="header-space-code" class="text-indigo-200 tracking-widest uppercase"></span> 📋
                 </button>
                 <button id="btn-delete-space" onclick="deleteSpace()" class="hidden bg-red-600 hover:bg-red-700 text-white border border-red-500/50 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="공간 영구 삭제">🗑️ <span class="hidden sm:inline">삭제</span></button>
-                
                 <button onclick="exitSpace()" class="bg-indigo-600/50 hover:bg-indigo-500/80 text-indigo-100 border border-indigo-400/30 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
             </div>
 
@@ -94,7 +93,7 @@
         </div>
 
         <div id="view-room" class="hidden">
-            <button id="btn-back-lobby" onclick="goHome()" class="mb-4 md:mb-6 text-indigo-500 font-bold hover:underline text-sm">← 뒤로 가기</button>
+            <button id="btn-back-lobby" onclick="goHome()" class="hidden mb-4 md:mb-6 text-indigo-500 font-bold hover:underline text-sm">← 뒤로 가기</button>
             <div id="room-header" class="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200 mb-6 md:mb-8 relative overflow-hidden flex flex-col justify-center items-center text-center"></div>
             <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
                 <div class="w-full lg:w-2/3 bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200"><div class="flex justify-between items-end mb-6 border-b pb-4"><div><h3 class="text-lg md:text-xl font-black mb-1">🔥 일정 조율표</h3><p class="text-[9px] md:text-[10px] text-slate-400">날짜를 클릭해 상세 시간을 확인하세요.</p></div><div id="room-members-toggle" class="flex flex-wrap gap-1 justify-end max-w-[40%]"></div></div><div class="overflow-y-auto max-h-[300px] md:max-h-[350px] pt-2"><div id="room-heatmap" class="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-2 md:gap-4"></div></div><div id="timeline-panel" class="hidden mt-6 md:mt-8 border-t-2 border-indigo-100 pt-6 md:pt-8 bg-slate-50/50 -mx-5 md:-mx-8 px-5 md:px-8 pb-4 rounded-b-[1.5rem] md:rounded-b-[2.5rem]"><div class="flex justify-between items-center mb-4 md:mb-6"><h4 id="timeline-date-title" class="text-sm md:text-lg font-black text-indigo-700 truncate mr-2">상세 타임라인</h4><button onclick="closeTimeline()" class="text-[10px] font-bold bg-white text-slate-400 hover:text-red-500 px-2 md:px-3 py-1 rounded-full border shadow-sm transition-colors flex-shrink-0">닫기 ×</button></div><div class="relative h-6 border-b border-slate-300 mb-4 text-[8px] md:text-[9px] font-mono text-slate-400 pl-16 md:pl-20"><div class="relative w-full h-full"><span class="absolute left-0 -translate-x-1/2">00</span><span class="absolute left-1/4 -translate-x-1/2">06</span><span class="absolute left-2/4 -translate-x-1/2">12</span><span class="absolute left-3/4 -translate-x-1/2">18</span><span class="absolute right-0 translate-x-1/2">24</span></div></div><div id="timeline-bars" class="space-y-2 md:space-y-3 relative z-10"></div></div></div>
@@ -158,9 +157,6 @@
             updateLocUI();
         });
 
-        // =========================================
-        // [단일 통합 라우팅 엔진 (Zwei Fliegen)]
-        // =========================================
         let activeViewBeforeMypage = 'view-hub';
 
         function switchView(viewId) {
@@ -173,9 +169,6 @@
             window.scrollTo(0,0);
         }
 
-        // =========================================
-        // [인증 및 공간 허브 로직 (The Gateway)]
-        // =========================================
         async function updateProfile(user) { 
             userState = user; toggle('user-profile', true); 
             const { data } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
@@ -230,7 +223,6 @@
             document.getElementById('header-space-name').innerText = currentSpace.space_name;
             document.getElementById('header-space-code').innerText = currentSpace.space_code;
             
-            // [핵심 패치] 현재 공간의 방장(Creator)인 경우에만 붉은 '삭제' 버튼 표시
             if (currentSpace.creator_id === userState.id) {
                 document.getElementById('btn-delete-space').classList.remove('hidden');
             } else {
@@ -253,7 +245,6 @@
             }
         }
 
-        // [핵심 패치] 공간 영구 삭제 (Doppelt genäht)
         window.deleteSpace = async () => {
             if (!currentSpace || !userState || currentSpace.creator_id !== userState.id) return;
             
@@ -264,13 +255,11 @@
                 return;
             }
 
-            // DB에서 해당 공간을 삭제합니다. (ON DELETE CASCADE로 인해 관련된 모든 세션도 자동 폭파됩니다.)
             const { error } = await client.from('spaces').delete().eq('id', currentSpace.id);
             if (error) return alert("공간 삭제 중 오류가 발생했습니다: " + error.message);
             
             alert("공간이 영구적으로 삭제되었습니다.");
             
-            // 허브로 복귀 및 흔적 지우기
             exitSpace();
             if(!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids();
         };
@@ -299,9 +288,6 @@
             }
         };
 
-        // =========================================
-        // [내비게이션 및 다이렉트 점프 로직]
-        // =========================================
         window.goHome = () => { 
             if(!currentSpace) switchView('view-hub'); 
             else if(currentSpace.space_type === 'large') goLobby(); 
@@ -333,9 +319,6 @@
             goRoom(sId);
         };
 
-        // =========================================
-        // [모달 및 UI 관련]
-        // =========================================
         window.openAvatarModal = () => { 
             studioTarget = "user"; document.getElementById('studio-title').innerText = "🎨 프로필 스튜디오"; document.getElementById('btn-studio-revert').innerText = "구글 사진으로"; toggle('studio-nick-section', true);
             document.getElementById('studio-nick-input').value = document.getElementById('display-name').innerText;
@@ -375,9 +358,6 @@
 
         window.saveMypageNickname = async () => { const n = document.getElementById('mypage-nick-input').value.trim(); if (n && userState) { await client.from('users').update({ nickname: n }).eq('id', userState.id); document.getElementById('display-name').innerText = n; alert("닉네임 변경 완료! ✨"); } };
 
-        // =========================================
-        // [데이터 패칭 및 렌더링]
-        // =========================================
         async function fetchGlobalData() { 
             if(!currentSpace) return;
             const [sess, mem] = await Promise.all([ 
@@ -437,7 +417,30 @@
         window.openTimeline = (dateStr) => { hideTooltip(); const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); if(dayAvs.length === 0) return; const dO = new Date(dateStr), m = String(dO.getMonth()+1).padStart(2,'0'), d = String(dO.getDate()).padStart(2,'0'), w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); document.getElementById('timeline-date-title').innerText = `${m}/${d} (${w}) 타임라인`; document.getElementById('timeline-bars').innerHTML = dayAvs.map(a => { const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = eP - sP; return `<div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users.nickname}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] font-mono font-black text-white opacity-0 group-hover:opacity-100 z-10 drop-shadow-md">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div>`; }).join(''); toggle('timeline-panel', true); setTimeout(() => document.getElementById('timeline-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); };
         window.closeTimeline = () => { toggle('timeline-panel', false); };
         window.toggleMyDay = (day) => { const b = document.getElementById(`my-day-${day}`); if (selectedWeekdays.includes(day)) { selectedWeekdays = selectedWeekdays.filter(d => d !== day); b.className = "w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors"; } else { selectedWeekdays.push(day); b.className = (day === 0) ? "w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors"; } };
-        window.addMyAvail = async () => { const sD = document.getElementById('in-my-start-date').value, eD = document.getElementById('in-my-end-date').value, tS = document.getElementById('in-my-start').value, tE = document.getElementById('in-my-end').value; if(!sD || !tS || !tE) return alert("날짜와 시간을 입력하세요."); const fED = eD || sD; let sDt = new Date(sD), eDt = new Date(fED); if (eDt < sDt) return alert("기간 설정 오류"); if (selectedWeekdays.length === 0) return alert("요일 선택 필요"); const ps = []; let limit = 365; for (let d = new Date(sDt); d <= eDt; d.setDate(d.getDate() + 1)) { if (limit-- < 0) break; if (selectedWeekdays.includes(d.getDay())) ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: d.toISOString().split('T')[0], start_time: tS, end_time: tE }); } if (ps.length === 0) return alert("선택된 기간 내에 해당 요일이 없습니다."); const { error } = await client.from('session_availability').insert(ps); if (error) alert(error.message); else renderRoom(); };
+        
+        // [핵심 패치: Upsert 엔진 적용]
+        window.addMyAvail = async () => { 
+            const sD = document.getElementById('in-my-start-date').value, eD = document.getElementById('in-my-end-date').value, tS = document.getElementById('in-my-start').value, tE = document.getElementById('in-my-end').value; 
+            if(!sD || !tS || !tE) return alert("날짜와 시간을 입력하세요."); 
+            const fED = eD || sD; let sDt = new Date(sD), eDt = new Date(fED); 
+            if (eDt < sDt) return alert("기간 설정 오류"); 
+            if (selectedWeekdays.length === 0) return alert("요일 선택 필요"); 
+            
+            const ps = []; let limit = 365; 
+            for (let d = new Date(sDt); d <= eDt; d.setDate(d.getDate() + 1)) { 
+                if (limit-- < 0) break; 
+                if (selectedWeekdays.includes(d.getDay())) {
+                    ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: d.toISOString().split('T')[0], start_time: tS, end_time: tE }); 
+                }
+            } 
+            if (ps.length === 0) return alert("선택된 기간 내에 해당 요일이 없습니다."); 
+            
+            // insert 대신 upsert를 사용하여 중복 에러 방지 (이미 있으면 덮어쓰기)
+            const { error } = await client.from('session_availability').upsert(ps, { onConflict: 'session_id,user_id,available_date' }); 
+            if (error) alert("일정 등록 오류: " + error.message); 
+            else renderRoom(); 
+        };
+
         window.delMyAvail = async (id) => { await client.from('session_availability').delete().eq('id', id); renderRoom(); };
         window.addConfirmedSchedule = async () => { const cD = document.getElementById('in-confirm-date').value, cT = document.getElementById('in-confirm-time').value, isW = document.getElementById('in-confirm-repeat').value === 'weekly', cnt = parseInt(document.getElementById('in-confirm-count').value || 1); if(!cD || !cT) return alert("날짜/시간 입력 필요"); const s = allSessions.find(x => x.id === currentSessionId); let scs = s.confirmed_schedules || [], bD = new Date(cD); for(let i=0; i<cnt; i++) { let d = new Date(bD); if(isW) d.setDate(d.getDate() + (i * 7)); else if (i > 0) break; let dStr = d.toISOString().split('T')[0]; if (!scs.find(x => x.date === dStr && x.time === cT)) scs.push({ date: dStr, time: cT }); } scs.sort((a,b) => new Date(a.date) - new Date(b.date)); await client.from('sessions').update({ confirmed_schedules: scs, status: scs.length > 0 ? 'confirmed' : 'recruiting' }).eq('id', currentSessionId); renderRoom(); };
         window.removeConfirmedSchedule = async (idx) => { const s = allSessions.find(x => x.id === currentSessionId); s.confirmed_schedules.splice(idx, 1); await client.from('sessions').update({ confirmed_schedules: s.confirmed_schedules, status: s.confirmed_schedules.length > 0 ? 'confirmed' : 'recruiting' }).eq('id', currentSessionId); renderRoom(); };
