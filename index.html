@@ -36,6 +36,10 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
+
+        /* ✅ V3.5 추가: 배경 패턴 애니메이션 엔진 */
+        @keyframes slideBg { 0% { background-position: 0 0; } 100% { background-position: 100px 100px; } }
+        .bg-pattern-anim { animation: slideBg 40s linear infinite; }
     </style>
 </head>
 <body class="text-slate-800 relative pb-16">
@@ -172,7 +176,45 @@
 
         <div id="modal-create" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 md:p-4"><div class="bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative overflow-y-auto max-h-[90vh] custom-scrollbar"><h3 id="modal-title" class="text-xl md:text-2xl font-black mb-6 md:mb-8">🎲 세션 설정</h3><input type="hidden" id="edit-session-id"><div class="space-y-4 mb-8 text-left text-sm"><div class="relative w-full h-32 rounded-2xl border-2 border-slate-100 overflow-hidden group cursor-pointer hover-base hover:shadow-lg mb-4" onclick="openBannerModal()"><div id="session-banner-preview" class="w-full h-full flex items-center justify-center text-5xl"></div><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="text-white font-black text-xs">🎨 배너 디자인 변경</span></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="text" id="in-title" placeholder="세션 제목" class="w-full p-3 md:p-4 bg-slate-50 border-2 hover:border-indigo-200 focus:border-indigo-400 transition-colors rounded-xl outline-none font-bold"><div class="relative w-full flex gap-2"><select id="in-rule-primary" onchange="handleRuleSelection('primary')" class="cursor-pointer w-full p-3 md:p-4 bg-slate-50 border-2 hover:border-indigo-200 focus:border-indigo-400 transition-colors rounded-xl outline-none text-xs md:text-sm font-bold"><option value="" disabled selected>사용 룰 선택</option><option value="크툴루의 부름(CoC)">크툴루의 부름(CoC)</option><option value="인세인(inSANe)">인세인(inSANe)</option><option value="마기카로기아(마기로기)">마기카로기아(마기로기)</option><option value="더블크로스(Double Cross)">더블크로스(Double Cross)</option><option value="던전월드">던전월드</option><option value="피아스코">피아스코</option><option disabled>───</option><option value="show_all">📜 전체 목록...</option><option value="custom">✏️ 직접 입력...</option></select><select id="in-rule-all" onchange="handleRuleSelection('all')" class="cursor-pointer hidden w-full p-3 md:p-4 border-2 border-indigo-200 bg-indigo-50 rounded-xl text-xs md:text-sm font-bold"></select><input type="text" id="in-rule-custom" placeholder="룰 이름" class="hidden absolute inset-0 w-full h-full p-3 bg-white border-2 border-indigo-500 rounded-xl text-xs md:text-sm font-bold"><button id="btn-rule-cancel" type="button" onclick="resetRuleUI()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black p-2 bg-white rounded-full z-10 hover-base hover:text-red-500 hover:shadow-sm">×</button></div></div><div class="bg-slate-50 p-3 md:p-4 rounded-xl border-2 border-slate-100"><label class="text-[9px] font-bold text-slate-400 mb-2 block uppercase tracking-widest">세션 키워드</label><div id="modal-tags-container" class="flex flex-wrap gap-1.5"></div></div><textarea id="in-desc" placeholder="시나리오 개요 및 공지사항" class="custom-scrollbar w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-batang outline-none focus:border-indigo-400 hover:border-indigo-200 transition-colors"></textarea><div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center"><div class="relative w-full"><select id="in-cap" onchange="toggleCustomCap()" class="cursor-pointer w-full p-3 md:p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-400 hover:border-indigo-200 transition-colors"><option value="1">1명</option><option value="2">2명</option><option value="3">3명</option><option value="4" selected>4명</option><option value="5">5명</option><option value="6">6명</option><option value="7">7명</option><option value="custom">직접 입력...</option></select><input type="number" id="in-cap-custom" placeholder="인원수" class="hidden absolute inset-0 w-full h-full p-4 bg-white border-2 border-indigo-500 rounded-xl text-center font-bold outline-none"><button id="btn-cap-cancel" type="button" onclick="cancelCustomCap()" class="hidden hover-base hover:text-red-500 hover:shadow-sm absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black p-2 bg-white rounded-full">×</button></div><div class="flex gap-2"><button id="mode-on" type="button" class="hover-base shadow-sm flex-1 py-3 rounded-xl border-2 text-xs md:text-sm font-bold transition-colors">온라인</button><button id="mode-off" type="button" class="hover-base shadow-sm flex-1 py-3 rounded-xl border-2 text-xs md:text-sm font-bold transition-colors">오프라인</button></div></div><input type="text" id="in-loc" placeholder="링크 또는 오프라인 장소" class="w-full p-3 md:p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-400 hover:border-indigo-200 transition-colors"></div><div class="flex gap-3"><button id="btn-create-delete" type="button" class="hidden px-4 md:px-5 py-3 md:py-4 bg-red-50 text-red-500 font-bold rounded-xl hover-base hover:bg-red-100 hover:shadow-md text-lg md:text-xl" title="삭제">🗑️</button><button id="btn-create-close" type="button" class="flex-1 py-3 md:py-4 bg-slate-100 text-slate-500 font-bold rounded-xl hover-base hover:bg-slate-200 text-sm md:text-base whitespace-nowrap">취소</button><button id="btn-create-submit" type="button" class="flex-1 py-3 md:py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover-base btn-indigo-hover text-sm md:text-base whitespace-nowrap">저장하기</button></div></div></div>
 
-        <div id="modal-avatar" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] flex items-center justify-center p-4"><div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative text-center"><h3 id="studio-title" class="text-xl font-black mb-4 text-slate-800">🎨 스튜디오</h3><div class="mb-6 flex justify-center"><div id="avatar-preview" class="avatar-pop w-24 h-24 rounded-full border-4 border-slate-100 shadow-inner flex items-center justify-center text-4xl"></div></div><div id="studio-nick-section" class="mb-6 text-left"><label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">사용할 닉네임</label><input type="text" id="studio-nick-input" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors text-sm text-center"></div><div class="mb-6 text-left"><label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">테마 컬러</label><div class="flex flex-wrap gap-2 justify-center" id="gradient-palette"></div></div><div class="mb-6 text-left"><div class="flex justify-between items-end mb-2"><label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">럭키 이모지</label><button onclick="rerollEmojis()" class="hover-base hover:-translate-y-0.5 text-[10px] font-bold text-indigo-500 hover:underline">🔄 리롤</button></div><div class="grid grid-cols-5 gap-2 mb-3" id="emoji-gacha-container"></div><div class="flex gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200"><input type="text" id="avatar-custom-emoji" maxlength="2" oninput="applyCustomEmoji()" class="w-full text-center p-1 bg-white border border-slate-200 rounded text-lg outline-none hover:border-indigo-300 focus:border-indigo-500 transition-colors" placeholder="🎲 이모지 직접입력"></div></div><div class="flex flex-col gap-2"><button id="btn-studio-save" class="w-full py-3 bg-indigo-600 text-white font-black rounded-xl hover-base btn-indigo-hover shadow-sm">저장하기</button><div class="flex gap-2"><button id="btn-studio-revert" class="flex-1 py-2 bg-white border-2 border-slate-200 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-50 whitespace-nowrap">기본으로</button><button onclick="closeAvatarModal()" class="flex-1 py-2 bg-slate-100 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-200 whitespace-nowrap">취소</button></div></div></div></div>
+        <div id="modal-avatar" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative text-center">
+                <h3 id="studio-title" class="text-xl font-black mb-4 text-slate-800">🎨 스튜디오</h3>
+                <div class="mb-6 flex justify-center">
+                    <div id="avatar-preview" class="avatar-pop w-24 h-24 rounded-full border-4 border-slate-100 shadow-inner flex items-center justify-center text-4xl"></div>
+                </div>
+                <div id="studio-nick-section" class="mb-6 text-left">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">사용할 닉네임</label>
+                    <input type="text" id="studio-nick-input" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors text-sm text-center">
+                </div>
+                <div class="mb-6 text-left">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">테마 컬러 (프리셋)</label>
+                    <div class="flex flex-wrap gap-2 justify-center mb-3" id="gradient-palette"></div>
+                    <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <span class="text-[10px] font-bold text-slate-500 whitespace-nowrap px-1">직접 조합</span>
+                        <input type="color" id="custom-c1" value="#4f46e5" oninput="applyCustomGradientUI()" class="w-full h-8 cursor-pointer border-0 p-0 bg-transparent rounded shadow-sm">
+                        <span class="text-slate-300 text-xs font-black">+</span>
+                        <input type="color" id="custom-c2" value="#818cf8" oninput="applyCustomGradientUI()" class="w-full h-8 cursor-pointer border-0 p-0 bg-transparent rounded shadow-sm">
+                    </div>
+                </div>
+                <div class="mb-6 text-left">
+                    <div class="flex justify-between items-end mb-2">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">럭키 이모지</label>
+                        <button onclick="rerollEmojis()" class="hover-base hover:-translate-y-0.5 text-[10px] font-bold text-indigo-500 hover:underline">🔄 리롤</button>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 mb-3" id="emoji-gacha-container"></div>
+                    <div class="flex gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+                        <input type="text" id="avatar-custom-emoji" maxlength="2" oninput="applyCustomEmoji()" class="w-full text-center p-1 bg-white border border-slate-200 rounded text-lg outline-none hover:border-indigo-300 focus:border-indigo-500 transition-colors" placeholder="🎲 이모지 직접입력">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button id="btn-studio-save" class="w-full py-3 bg-indigo-600 text-white font-black rounded-xl hover-base btn-indigo-hover shadow-sm">저장하기</button>
+                    <div class="flex gap-2">
+                        <button id="btn-studio-revert" class="flex-1 py-2 bg-white border-2 border-slate-200 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-50 whitespace-nowrap">기본으로</button>
+                        <button onclick="closeAvatarModal()" class="flex-1 py-2 bg-slate-100 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-200 whitespace-nowrap">취소</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -188,7 +230,10 @@
         
         const AVAILABLE_TAGS = ['GM리스', 'GMPC', '텍스트세션', '보이스세션', '대면세션', '입문환영', '숙련자추천', '룰북필수', '룰북미소지자가능', '단편(원샷)', '단기(다회차)', '장기/캠페인'];
         const ALL_RULES_DB = ['가부키쵸 전설 나이트 버터플라이', '거점방어 좀비라인', '건독 리바이스드', '겁스(GURPS)', '누메네라', '다이얼렉트', '더블크로스(Double Cross)', '던전 앤 드래곤(D&D 5e)', '던전월드', '두려움 그 자체', '둘이서 수사', '로그 호라이즌', '마기카로기아(마기로기)', '마우스가드(Mouse Guard)', '마이크로스코프', '밤의 검은 사자들', '밤의 마녀들', '뱀파이어 더 마스커레이드(VtM)', '베센(VAESEN)', '비밀요원국', '사이버 퍼밀리어', '스파이어(SPIRE)', '스프롤(SPRAWL)', '시노비가미', '아곤', '아론의 사제', '어둠 속의 칼날', '언성듀엣', '여왕을 위하여', '울타리 너머', '은검의 스텔라 나이츠', '인세인(inSANe)', '잿불 속의 군단', '전광세계 배스천랜드', '제13시대', '취록의 플로리아', '크로스레터', '크툴루 컨피덴셜', '크툴루의 부름(CoC)', '트래블러(Traveler)', '팀 셜록(TEAM Sherlock)', '포도원의 파수견', '포지드 인 던전', '폴라리스', '프로키온의 무법자들', '피카레스크 로망', '피아스코', '화려한 괴도 팬터미즘(Phantomism)'];
-        const EMOJI_POOL = ['🧙‍♂️','🧝‍♀️','🧛','🧚','🧜‍♂️','🧞','🎲','🔮','🗡️','🏹','🛡️','📜','🧪','👑','💎','🐉','🦄','🦊','🦉','🐙','🐈','🐍','🐸','🦋','😎','🤔','🫠','🥹','🥸','🤯','🥳','😈','👽','👾','👻','🔥','💧','⚡','🌙','☀️','✨','⭐'];
+        
+        // ✅ V3.5: 110여 종의 다양한 테마(판타지/SF/자연/오브젝트) 이모지 풀 대폭 확장
+        const EMOJI_POOL = ['🎲','🧙‍♂️','🧝‍♀️','🧛','🧚','🧜‍♂️','🧞','🔮','🗡️','🏹','🛡️','📜','🧪','👑','💎','🐉','🦄','🦊','🦉','🐙','🐈','🐍','🐸','🦋','😎','🤔','🫠','🥹','🥸','🤯','🥳','😈','👽','👾','👻','🔥','💧','⚡','🌙','☀️','✨','⭐','🪐','🛸','🚀','⏳','🧭','⚖️','🗝️','🚪','🪞','🧿','⚔️','⛏️','⚙️','🔗','🩸','🧬','💀','☠️','🦴','👁️','🧠','🎭','🎪','⛺','🏕️','🏔️','🌋','🪵','🍄','🕸️','🥀','🌺','🌻','🌲','🌴','🌵','🍀','🍁','🍂','🌍','🌕','🌔','🌓','🌒','🌑','🌘','🌗','🌖','🌚','🌛','🌞','🌌','☁️','⛈️','🌤️','🌦️','🌧️','🌨️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','☔','❄️','☃️','☄️','🌊','🎃','🎄','🎆','🎇','🧨','🎈','🎉','🎊','🎀','🎁','🎗️','🎟️'];
+        
         const GRADIENT_PRESETS = [ { name: '파이어볼', value: 'linear-gradient(135deg, #f83600 0%, #f9d423 100%)' }, { name: '엘프의 숲', value: 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)' }, { name: '아케인', value: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)' }, { name: '네크로맨서', value: 'linear-gradient(135deg, #434343 0%, black 100%)' }, { name: '사이버펑크', value: 'linear-gradient(135deg, #b465da 0%, #cf6cc9 50%, #ee609c 100%)' }, { name: '환상(기본)', value: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' }, { name: '심해', value: 'linear-gradient(135deg, #09203f 0%, #537895 100%)' } ];
 
         let filterKeyword = "", filterLoc = "all", filterStatus = false, filterTags = [], currentTags = [];
@@ -197,7 +242,28 @@
         const toggle = (id, show) => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', !show); };
         const escapeHTML = (str) => str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         const timeToPercent = (tS) => { const [h, m] = tS.split(':').map(Number); return ((h + (m / 60)) / 24) * 100; };
-        function renderCustomBoxHTML(url, classNames, isBanner = false) { if (!url) return `<div class="${classNames} bg-slate-200"></div>`; if (url.startsWith('custom|')) { const parts = url.split('|'); return `<div class="${classNames} avatar-pop" style="background: ${parts[1] || 'gray'}; display: flex; align-items: center; justify-content: center; ${isBanner ? 'font-size: 3rem;' : 'font-size: 1.2em;'}">${parts[2] || ''}</div>`; } return isBanner ? `<div class="${classNames}" style="background-color: ${url}"></div>` : `<img src="${url}" class="${classNames}">`; }
+        
+        // ✅ V3.5: 패턴 분기 엔진 추가 (isLargeRoomBanner 인자가 true일 경우 SVG 패턴 렌더링)
+        function renderCustomBoxHTML(url, classNames, isBanner = false, isLargeRoomBanner = false) { 
+            if (!url) return `<div class="${classNames} bg-slate-200"></div>`; 
+            if (url.startsWith('custom|')) { 
+                const parts = url.split('|'); 
+                const grad = parts[1] || 'gray';
+                const emo = parts[2] || '';
+                
+                if (isLargeRoomBanner) {
+                    const svgData = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><text x="50%" y="50%" font-size="30" text-anchor="middle" dominant-baseline="central" opacity="0.15">${encodeURIComponent(emo)}</text></svg>`;
+                    return `<div class="${classNames}" style="background: ${grad}; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                                <div class="absolute inset-0 bg-pattern-anim" style="background-image: url('${svgData}'); background-repeat: repeat;"></div>
+                                <div style="position: relative; z-index: 10; font-size: 8rem; text-shadow: 0 10px 25px rgba(0,0,0,0.2); opacity: 0.6; transform: scale(1.2);">${emo}</div>
+                            </div>`;
+                } else {
+                    return `<div class="${classNames} avatar-pop" style="background: ${grad}; display: flex; align-items: center; justify-content: center; ${isBanner ? 'font-size: 3rem;' : 'font-size: 1.2em;'} text-shadow: 0 4px 6px rgba(0,0,0,0.1);">${emo}</div>`; 
+                }
+            } 
+            return isBanner ? `<div class="${classNames}" style="background-color: ${url}"></div>` : `<img src="${url}" class="${classNames}">`; 
+        }
+        
         function generateCode() { const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let res = ''; for(let i=0; i<6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length)); return res; }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -403,9 +469,15 @@
         window.closeAvatarModal = () => { toggle('modal-avatar', false); };
         window.rerollEmojis = () => { const shuffled = [...EMOJI_POOL].sort(() => 0.5 - Math.random()).slice(0, 10); document.getElementById('emoji-gacha-container').innerHTML = shuffled.map(e => `<button onclick="setAvatarEmoji('${e}')" class="hover-base w-full aspect-square text-2xl bg-slate-50 hover:bg-indigo-50 border border-slate-100 rounded-xl flex items-center justify-center">${e}</button>`).join(''); document.getElementById('avatar-custom-emoji').value = ""; };
         window.setAvatarGradient = (grad) => { tempGrad = grad; updateAvatarPreview(); };
+        window.applyCustomGradientUI = () => { const c1 = document.getElementById('custom-c1').value; const c2 = document.getElementById('custom-c2').value; tempGrad = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`; updateAvatarPreview(); };
         window.setAvatarEmoji = (emo) => { tempEmoji = emo; updateAvatarPreview(); };
         window.applyCustomEmoji = () => { const val = document.getElementById('avatar-custom-emoji').value.trim(); if(val) { tempEmoji = val.slice(0,2); updateAvatarPreview(); } };
-        window.updateAvatarPreview = () => { document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl'); };
+        
+        // ✅ V3.5: 스튜디오 내부 미리보기 창에서도 배너 모드일 경우 대규모 패턴(isLargeRoomBanner=true) 적용
+        window.updateAvatarPreview = () => { 
+            const isBannerMode = (studioTarget === "session");
+            document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
+        };
         
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
@@ -429,7 +501,9 @@
             } else { tempSessionBanner = "#4f46e5"; updateBannerPreview(); } 
             closeAvatarModal(); 
         };
-        function updateBannerPreview() { document.getElementById('session-banner-preview').innerHTML = renderCustomBoxHTML(tempSessionBanner, 'w-full h-full flex items-center justify-center', true); }
+        
+        // ✅ V3.5: 모달 오픈 시 배너 미리보기 패턴 적용
+        function updateBannerPreview() { document.getElementById('session-banner-preview').innerHTML = renderCustomBoxHTML(tempSessionBanner, 'w-full h-full flex items-center justify-center', true, true); }
         window.saveMypageNickname = async () => { const n = document.getElementById('mypage-nick-input').value.trim(); if (n && userState) { await client.from('users').update({ nickname: n }).eq('id', userState.id); document.getElementById('display-name').innerText = n; alert("닉네임 변경 완료! ✨"); } };
 
         async function fetchGlobalData() { 
@@ -456,12 +530,11 @@
         window.toggleLobbyFilterTag = (tag) => { if (filterTags.includes(tag)) filterTags = filterTags.filter(t => t !== tag); else filterTags.push(tag); renderFilterTagsUI(); renderLobbyGrid(); };
         window.clearFilterTags = () => { filterTags = []; renderFilterTagsUI(); renderLobbyGrid(); };
 
-        // ✅ 패치: 세션 카드에 장소/링크(location_detail) 텍스트를 출력하도록 HTML 구조 추가
         function generateSessionCardHTML(s, mbs = null) { 
             if(!mbs) mbs = membersMap[s.id] || [];
             const isFull = mbs.length >= s.capacity, ts = s.tags || []; 
             const sBadge = (s.confirmed_schedules && s.confirmed_schedules.length > 0) ? `<span class="bg-green-100 text-green-700 badge-status shadow-sm">일정 확정</span>` : `<span class="bg-indigo-100 text-indigo-700 badge-status shadow-sm">모집 중</span>`; 
-            const bH = renderCustomBoxHTML(s.banner_color || '#4f46e5', 'min-h-[5.5rem] md:min-h-[6.5rem] w-full p-4 md:p-5 flex flex-col justify-between relative', true); 
+            const bH = renderCustomBoxHTML(s.banner_color || '#4f46e5', 'min-h-[5.5rem] md:min-h-[6.5rem] w-full p-4 md:p-5 flex flex-col justify-between relative', true, false); 
             const gmName = s.creator?.nickname || '알 수 없음';
             const locIcon = s.location_type === 'online' ? '🔗' : '📍';
             const locText = s.location_detail ? `<p class="text-[9px] md:text-[10px] text-slate-500 mt-1.5 truncate font-bold"><span class="mr-0.5">${locIcon}</span> ${escapeHTML(s.location_detail)}</p>` : '';
@@ -531,7 +604,7 @@
         }
         window.changeMasterMonth = (v) => { masterDate.setMonth(masterDate.getMonth() + v); renderMasterCalendar(); };
 
-        // ✅ 패치: 룸 헤더 렌더링 시 링크 자동 변환(하이퍼링크) 및 장소 표기 UI 추가
+        // ✅ V3.5: 와이드 헤더에 대규모 패턴 인자(true) 전달 및 투명도를 낮춰 가독성/패턴 노출도 동시 확보
         async function renderRoom() {
             const s = allSessions.find(x => x.id === currentSessionId); if (!s) return goLobby();
             const isGM = s.creator_id === userState.id, mbs = membersMap[s.id] || [], isJ = mbs.some(m => m.user_id === userState.id);
@@ -540,7 +613,7 @@
             const isUrl = s.location_detail && (s.location_detail.startsWith('http://') || s.location_detail.startsWith('https://'));
             const roomLocH = s.location_detail ? `<div class="bg-white/60 px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-white shadow-sm text-[10px] md:text-xs font-bold text-slate-700 mb-6 flex items-center gap-1.5 md:gap-2 max-w-full"><span class="text-sm md:text-base">${s.location_type === 'online' ? '🔗' : '📍'}</span> <span class="truncate">${isUrl ? `<a href="${escapeHTML(s.location_detail)}" target="_blank" class="text-indigo-600 hover:underline hover:text-indigo-800 transition-colors">${escapeHTML(s.location_detail)}</a>` : escapeHTML(s.location_detail)}</span></div>` : '<div class="mb-6"></div>';
 
-            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-20">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-800 drop-shadow-sm">${s.title} <span class="text-sm text-indigo-500">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-bold text-slate-500 mb-4">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-600 font-batang mb-4 leading-relaxed whitespace-pre-wrap">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
+            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-800 drop-shadow-sm">${s.title} <span class="text-sm text-indigo-500">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-bold text-slate-500 mb-4">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-600 font-batang mb-4 leading-relaxed whitespace-pre-wrap">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
             toggle('gm-control-panel', isGM);
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button onclick="removeConfirmedSchedule(${idx})" class="hover-base hover:-translate-y-0.5 text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
@@ -668,7 +741,6 @@
         window.handleRuleSelection = (src) => { const p = document.getElementById('in-rule-primary'), a = document.getElementById('in-rule-all'), c = document.getElementById('in-rule-custom'), b = document.getElementById('btn-rule-cancel'); let v = (src === 'primary') ? p.value : a.value; if (v === 'show_all') { p.classList.add('hidden'); a.classList.remove('hidden'); b.classList.remove('hidden'); a.value = ""; } else if (v === 'custom') { p.classList.add('hidden'); a.classList.add('hidden'); c.classList.remove('hidden'); b.classList.remove('hidden'); c.focus(); } else if (src === 'all' && v) b.classList.remove('hidden'); };
         window.resetRuleUI = () => { const p = document.getElementById('in-rule-primary'), a = document.getElementById('in-rule-all'), c = document.getElementById('in-rule-custom'), b = document.getElementById('btn-rule-cancel'); p.value = ""; p.classList.remove('hidden'); a.classList.add('hidden'); c.classList.add('hidden'); b.classList.add('hidden'); };
         
-        // ✅ 패치: 삭제 이벤트 리스너 추가 (Delete Button Event)
         document.getElementById('btn-create-delete').onclick = async () => {
             const sId = document.getElementById('edit-session-id').value;
             if(!sId) return;
