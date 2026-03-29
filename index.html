@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TRPG 유니버설 스케줄러 (유니스케)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2205@1.0/KoPubWorldDotum.woff2');
+        body { font-family: 'KoPubWorldDotum', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; }
+        .hover-base { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .btn-indigo-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="text-center mb-10">
+        <h1 class="text-3xl md:text-5xl font-black text-indigo-700 italic tracking-tighter drop-shadow-sm">🎲 TRPG Uni-Sched</h1>
+        <p class="text-sm md:text-base text-slate-500 font-bold mt-2">전국 롤플레이어들을 위한 프라이빗 일정 조율 허브</p>
+    </div>
+
+    <div id="view-login" class="bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-slate-100 max-w-sm w-full text-center">
+        <div class="text-6xl mb-6">🚪</div>
+        <h2 class="text-xl font-black mb-2 text-slate-800">모험을 시작할 준비가 되셨나요?</h2>
+        <p class="text-xs text-slate-500 mb-8">구글 계정으로 안전하게 로그인하세요.</p>
+        <button id="btn-login-main" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg shadow-md hover-base btn-indigo-hover flex items-center justify-center gap-2">
+            <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google로 계속하기
+        </button>
+    </div>
+
+    <div id="view-hub" class="hidden w-full max-w-4xl flex flex-col items-center">
+        <div class="flex items-center gap-3 bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-200 mb-8 cursor-pointer hover:bg-slate-50 transition-colors" onclick="handleLogout()" title="클릭 시 로그아웃">
+            <img id="hub-avatar" src="" class="w-8 h-8 rounded-full border border-slate-200 object-cover">
+            <span id="hub-nickname" class="text-sm font-black text-slate-700">로딩중...</span>
+            <span class="text-[10px] text-slate-400 font-bold bg-slate-100 px-2 py-0.5 rounded-md">로그아웃</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+            <div class="bg-white p-8 md:p-10 rounded-[2rem] shadow-xl border-t-4 border-indigo-500 hover:-translate-y-1 transition-transform">
+                <div class="text-4xl mb-4">🔑</div>
+                <h3 class="text-xl font-black mb-2 text-slate-800">초대 코드로 입장하기</h3>
+                <p class="text-xs text-slate-500 mb-6 font-bold leading-relaxed">지인에게 받은 6자리 코드를 입력하여<br>프라이빗 조율 공간에 입장하세요.</p>
+                <div class="flex gap-2">
+                    <input type="text" id="in-join-code" placeholder="예: A7X9BQ" maxlength="6" class="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-black text-center text-lg outline-none focus:border-indigo-500 uppercase tracking-widest">
+                </div>
+                <button onclick="joinSpace()" class="w-full mt-3 bg-indigo-600 text-white py-4 rounded-xl font-black shadow-md hover-base btn-indigo-hover">공간 입장 🚀</button>
+            </div>
+
+            <div class="bg-indigo-50 p-8 md:p-10 rounded-[2rem] shadow-xl border border-indigo-100 relative overflow-hidden">
+                <div class="text-4xl mb-4 relative z-10">➕</div>
+                <h3 class="text-xl font-black mb-2 text-indigo-900 relative z-10">새로운 공간 만들기</h3>
+                <p class="text-xs text-indigo-500 mb-6 font-bold leading-relaxed relative z-10">우리 팀만의 전용 스케줄러를 개설하고<br>초대 코드를 발급받으세요.</p>
+                
+                <div class="space-y-4 relative z-10">
+                    <input type="text" id="in-space-name" placeholder="모임/세션 이름" class="w-full p-4 bg-white border-2 border-indigo-100 rounded-xl font-bold outline-none focus:border-indigo-400 text-sm">
+                    
+                    <div class="flex flex-col gap-2">
+                        <label class="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors">
+                            <input type="radio" name="space_type" value="large" class="mt-1 w-4 h-4 text-indigo-600" checked>
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-slate-700">대규모 커뮤니티 (10인 이상)</span>
+                                <span class="text-[10px] text-slate-500 font-bold mt-0.5">로비 게시판과 마이페이지가 제공됩니다.</span>
+                            </div>
+                        </label>
+                        <label class="flex items-start gap-3 p-3 bg-white rounded-xl border-2 border-indigo-100 cursor-pointer hover:border-indigo-400 transition-colors">
+                            <input type="radio" name="space_type" value="small" class="mt-1 w-4 h-4 text-indigo-600">
+                            <div class="flex flex-col">
+                                <span class="text-sm font-black text-slate-700">소규모 단일 팀 (10인 미만)</span>
+                                <span class="text-[10px] text-slate-500 font-bold mt-0.5">로비 없이 즉시 일정 조율표로 진입합니다.</span>
+                            </div>
+                        </label>
+                    </div>
+                    <button onclick="createSpace()" class="w-full bg-indigo-800 text-white py-4 rounded-xl font-black shadow-md hover-base hover:bg-indigo-900">코드 발급받기 🎁</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-system" class="hidden w-full flex flex-col items-center text-center mt-20">
+        <div class="text-6xl mb-4">⚙️</div>
+        <h2 id="sys-space-name" class="text-3xl font-black text-indigo-700 mb-2">공간 이름</h2>
+        <p id="sys-space-type" class="text-sm font-bold text-slate-500 mb-6 bg-white px-4 py-1 rounded-full shadow-sm border border-slate-200">타입</p>
+        <div class="bg-indigo-50 p-6 rounded-2xl border-2 border-indigo-100 border-dashed max-w-md">
+            <p class="text-sm font-black text-indigo-800 mb-2">🚨 시스템 렌더링 대기 중...</p>
+            <p class="text-xs text-indigo-600 font-bold leading-relaxed">이곳에 뚜비 디렉터님이 선택한 공간 타입(대규모/소규모)에 맞는<br>스케줄러 UI가 렌더링될 예정입니다.</p>
+        </div>
+        <button onclick="exitSpace()" class="mt-8 text-xs font-bold text-slate-400 hover:text-slate-600 underline">← 허브로 돌아가기</button>
+    </div>
+
+    <script>
+        // Supabase 키는 기존과 동일하게 사용합니다. (같은 DB 사용)
+        const S_URL = 'https://eebjvpvwakjumkanohzs.supabase.co';
+        const S_KEY = 'sb_publishable_Rlck6NADMmEyIRBz4kua5Q_izgzKAPO';
+        const client = supabase.createClient(S_URL, S_KEY);
+
+        let userState = null;
+        let currentSpace = null; // 입장한 공간 정보를 담는 변수
+
+        const toggle = (id, show) => document.getElementById(id).classList.toggle('hidden', !show);
+
+        // 1. 유저 상태 관리 (Auth)
+        async function updateProfile(user) {
+            userState = user;
+            toggle('view-login', false);
+            
+            const { data } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single();
+            const dN = data?.nickname || user.user_metadata.full_name;
+            const aU = data?.avatar_url || user.user_metadata.avatar_url;
+            
+            document.getElementById('hub-nickname').innerText = dN;
+            document.getElementById('hub-avatar').src = aU;
+            
+            // 로그인 완료 후, 이미 입장한 공간이 있는지 로컬스토리지에서 확인
+            const savedSpace = localStorage.getItem('trpg_current_space');
+            if (savedSpace) {
+                currentSpace = JSON.parse(savedSpace);
+                loadSpaceSystem();
+            } else {
+                toggle('view-hub', true);
+            }
+        }
+
+        client.auth.onAuthStateChange((event, session) => {
+            if (session) updateProfile(session.user);
+            else {
+                userState = null; currentSpace = null;
+                localStorage.removeItem('trpg_current_space');
+                toggle('view-login', true); toggle('view-hub', false); toggle('view-system', false);
+            }
+        });
+
+        document.getElementById('btn-login-main').onclick = () => client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
+        window.handleLogout = async () => { if(confirm("로그아웃 하시겠습니까?")) { await client.auth.signOut(); localStorage.clear(); location.reload(); } };
+
+        // 2. 랜덤 입장 코드 발급 엔진 (6자리 영문 대문자+숫자)
+        function generateCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리기 쉬운 I, O, 1, 0 제외
+            let result = '';
+            for (let i = 0; i < 6; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+            return result;
+        }
+
+        // 3. 새로운 공간 창조 로직
+        window.createSpace = async () => {
+            if (!userState) return;
+            const sName = document.getElementById('in-space-name').value.trim();
+            const sType = document.querySelector('input[name="space_type"]:checked').value;
+            
+            if (!sName) return alert("공간(모임)의 이름을 입력해 주세요!");
+
+            const newCode = generateCode();
+            const { error } = await client.from('spaces').insert({
+                space_code: newCode,
+                space_name: sName,
+                space_type: sType,
+                creator_id: userState.id
+            });
+
+            if (error) {
+                alert("공간 생성 중 오류가 발생했습니다: " + error.message);
+            } else {
+                alert(`✨ 공간이 성공적으로 생성되었습니다!\n\n🔑 팀원들에게 공유할 입장 코드: [ ${newCode} ]\n\n확인을 누르면 공간으로 즉시 입장합니다.`);
+                document.getElementById('in-join-code').value = newCode;
+                joinSpace(); // 생성 직후 바로 자동 입장
+            }
+        };
+
+        // 4. 공간 입장 (코드로 뚫고 들어가기)
+        window.joinSpace = async () => {
+            if (!userState) return;
+            const code = document.getElementById('in-join-code').value.trim().toUpperCase();
+            if (!code || code.length !== 6) return alert("6자리 입장 코드를 정확히 입력해 주세요.");
+
+            // DB에서 해당 코드가 존재하는지 검색
+            const { data, error } = await client.from('spaces').select('*').eq('space_code', code).single();
+
+            if (error || !data) {
+                return alert("존재하지 않거나 만료된 코드입니다. 다시 확인해 주세요. 🚫");
+            }
+
+            // 입장 성공! (허브 닫고 시스템으로 라우팅)
+            currentSpace = data;
+            localStorage.setItem('trpg_current_space', JSON.stringify(data)); // 새로고침해도 유지되도록
+            
+            toggle('view-hub', false);
+            loadSpaceSystem();
+        };
+
+        // 5. 공간 나가기 (허브로 복귀)
+        window.exitSpace = () => {
+            currentSpace = null;
+            localStorage.removeItem('trpg_current_space');
+            toggle('view-system', false);
+            toggle('view-hub', true);
+            document.getElementById('in-join-code').value = '';
+            document.getElementById('in-space-name').value = '';
+        };
+
+        // 6. 시스템 렌더링 분기점 (다음 스텝을 위한 플레이스홀더)
+        function loadSpaceSystem() {
+            toggle('view-system', true);
+            document.getElementById('sys-space-name').innerText = currentSpace.space_name;
+            
+            if (currentSpace.space_type === 'large') {
+                document.getElementById('sys-space-type').innerText = "🏰 대규모 커뮤니티 모드 (로비 활성화)";
+                document.getElementById('sys-space-type').className = "text-sm font-black text-indigo-600 mb-6 bg-indigo-50 px-4 py-1.5 rounded-full shadow-sm border border-indigo-100";
+            } else {
+                document.getElementById('sys-space-type').innerText = "⛺ 소규모 단일 팀 모드 (로비 비활성화)";
+                document.getElementById('sys-space-type').className = "text-sm font-black text-emerald-600 mb-6 bg-emerald-50 px-4 py-1.5 rounded-full shadow-sm border border-emerald-100";
+            }
+            
+            // [NEXT STEP] 이 함수 안에서, type이 'large'면 로비를, 'small'이면 즉시 캘린더를 렌더링하는 코드를 붙일 것입니다.
+        }
+    </script>
+</body>
+</html>
