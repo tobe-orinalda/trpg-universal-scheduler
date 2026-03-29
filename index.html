@@ -300,7 +300,6 @@
             } 
         });
 
-        // ✅ V3.6.2 핫패치: 프로필 업데이트 시 마이페이지(DOM) 요소까지 완벽하게 동기화 (State Sync)
         async function updateProfile(user) { 
             userState = user; toggle('user-profile', true); 
             const { data, error } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
@@ -312,11 +311,9 @@
                 await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }).catch(e => console.error("User upsert error:", e)); 
             }
             
-            // 상단 헤더 동기화
             document.getElementById('display-name').innerText = dN; 
             document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
             
-            // 마이페이지 동기화
             document.getElementById('mypage-nick-input').value = dN;
             document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-full h-full rounded-full object-cover');
 
@@ -521,7 +518,6 @@
             document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
         };
         
-        // ✅ V3.6.2 핫패치: 저장 시 마이페이지 UI DOM 100% 동기화 적용
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
             if(studioTarget === "user") { 
@@ -532,7 +528,6 @@
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
                 
-                // 마이페이지 강제 동기화
                 document.getElementById('mypage-nick-input').value = n;
                 document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-full h-full rounded-full object-cover');
                 
@@ -544,7 +539,6 @@
             closeAvatarModal(); 
         };
 
-        // ✅ V3.6.2 핫패치: 복구 시 마이페이지 UI DOM 100% 동기화 적용
         document.getElementById('btn-studio-revert').onclick = async () => { 
             if(studioTarget === "user") { 
                 const newUrl = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || ''; 
@@ -555,7 +549,6 @@
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
                 
-                // 마이페이지 강제 동기화
                 document.getElementById('mypage-nick-input').value = n;
                 document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-full h-full rounded-full object-cover');
                 
@@ -600,11 +593,19 @@
                 membersMap[m.session_id].push(m);
             });
 
+            // ✅ V3.6.3 핫패치: 달력 인포그래픽 향상을 위한 해시맵 데이터 확장
             calendarMap = {};
             allSessions.forEach(s => {
                 (s.confirmed_schedules || []).forEach(m => {
                     if(!calendarMap[m.date]) calendarMap[m.date] = [];
-                    calendarMap[m.date].push({ time: m.time, color: s.banner_color?.startsWith('custom') ? s.banner_color.split('|')[1] : (s.banner_color || '#4f46e5') });
+                    calendarMap[m.date].push({ 
+                        time: m.time, 
+                        color: s.banner_color?.startsWith('custom') ? s.banner_color.split('|')[1] : (s.banner_color || '#4f46e5'),
+                        title: s.title,
+                        id: s.id,
+                        space_code: s.space_code,
+                        rule: s.rule
+                    });
                 });
             });
 
@@ -669,6 +670,7 @@
             plGrid.innerHTML = pls.length === 0 ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">참여 중인 세션이 없습니다.</div>` : pls.map(s => generateSessionCardHTML(s, tempMap[s.id])).join(''); 
         }
 
+        // ✅ V3.6.3 핫패치: 달력 블록 내 텍스트 출력, 말풍선 툴팁 바인딩, 다이렉트 라우팅 동시 적용
         function renderMasterCalendar() { 
             const year = masterDate.getFullYear(), month = masterDate.getMonth(); 
             document.getElementById('master-month-title').innerText = `${year}.${String(month+1).padStart(2,'0')}`; 
@@ -679,7 +681,11 @@
             for (let i = 0; i < fD; i++) htmlBuffer += `<div></div>`; 
             for (let d = 1; d <= lD; d++) { 
                 const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; 
-                let eH = (calendarMap[dateStr] || []).map(m => `<div class="text-[7px] md:text-[9px] text-white truncate px-1 py-0.5 mt-0.5 rounded font-bold shadow-sm" style="background: ${m.color}">${m.time}</div>`).join('');
+                
+                let eH = (calendarMap[dateStr] || []).map(m => 
+                    `<div onclick="goRoomDirectly('${m.id}', '${m.space_code}')" onmouseenter="showTooltip(this, '${escapeHTML(m.title)}', '⏰ ${m.time}<br>🎲 ${escapeHTML(m.rule||'자유 룰')}')" onmouseleave="hideTooltip()" class="text-[7px] md:text-[9px] text-white truncate px-1.5 py-0.5 mt-0.5 rounded font-bold shadow-sm cursor-pointer hover:opacity-90 transition-opacity" style="background: ${m.color}">${m.time} <span class="font-normal opacity-90">${escapeHTML(m.title)}</span></div>`
+                ).join('');
+                
                 htmlBuffer += `<div class="cal-day hover:border-indigo-200 transition-colors"><span class="text-[9px] md:text-xs font-bold text-slate-600 mb-0.5">${d}</span><div class="flex-grow overflow-hidden">${eH}</div></div>`; 
             }
             calGrid.innerHTML = htmlBuffer;
