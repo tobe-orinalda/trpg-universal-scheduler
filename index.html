@@ -37,16 +37,15 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
 
-        /* ✅ V3.5.5: 스크롤 속도를 높이고, 패턴 크기에 맞게 120px로 동기화 */
-        @keyframes slideBg { 0% { background-position: 0 0; } 100% { background-position: 120px 120px; } }
-        .bg-pattern-anim { animation: slideBg 15s linear infinite; }
+        @keyframes slideBg { 0% { background-position: 0 0; } 100% { background-position: 400px 400px; } }
+        .bg-pattern-anim { animation: slideBg 30s linear infinite; }
     </style>
 </head>
 <body class="text-slate-800 relative pb-16">
 
     <div id="global-tooltip" class="absolute hidden bg-white border-2 border-indigo-100 text-slate-800 text-[11px] p-3 rounded-2xl z-[9999] shadow-2xl pointer-events-none transition-opacity duration-150 opacity-0 transform -translate-y-full w-48 sm:w-52"></div>
 
-    <button onclick="toggle('modal-donate', true)" class="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 md:px-5 md:py-3 rounded-full shadow-xl font-bold text-xs md:text-sm flex items-center gap-2 hover-base hover:bg-indigo-800 z-50 border-2 border-white/20">
+    <button type="button" onclick="toggle('modal-donate', true)" class="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 md:px-5 md:py-3 rounded-full shadow-xl font-bold text-xs md:text-sm flex items-center gap-2 hover-base hover:bg-indigo-800 z-50 border-2 border-white/20">
         ☕ 개발자에게 커피 사주기
     </button>
 
@@ -56,15 +55,15 @@
             
             <div id="header-space-info" class="hidden flex-1 flex justify-center items-center gap-1.5 md:gap-4 overflow-hidden px-1">
                 <span id="header-space-name" class="text-xs md:text-base font-black truncate max-w-[80px] md:max-w-xs text-indigo-100"></span>
-                <button onclick="copySpaceCode()" class="hover-base flex items-center gap-1 bg-indigo-800 hover:bg-indigo-900 border border-indigo-500/50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="초대 코드 복사">
+                <button type="button" onclick="copySpaceCode()" class="hover-base flex items-center gap-1 bg-indigo-800 hover:bg-indigo-900 border border-indigo-500/50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="초대 코드 복사">
                     <span id="header-space-code" class="text-indigo-200 tracking-widest uppercase"></span> 📋
                 </button>
-                <button id="btn-delete-space" onclick="deleteSpace()" class="hidden hover-base bg-red-600 hover:bg-red-700 text-white border border-red-500/50 px-2 py-1 md:py-1.5 rounded-lg text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="공간 영구 삭제">🗑️ <span class="hidden sm:inline">삭제</span></button>
-                <button onclick="exitSpace()" class="hover-base bg-indigo-600/50 hover:bg-indigo-500/80 text-indigo-100 border border-indigo-400/30 px-2 py-1 md:py-1.5 rounded-lg text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
+                <button type="button" id="btn-delete-space" onclick="deleteSpace()" class="hidden hover-base bg-red-600 hover:bg-red-700 text-white border border-red-500/50 px-2 py-1 md:py-1.5 rounded-lg text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="공간 영구 삭제">🗑️ <span class="hidden sm:inline">삭제</span></button>
+                <button type="button" onclick="exitSpace()" class="hover-base bg-indigo-600/50 hover:bg-indigo-500/80 text-indigo-100 border border-indigo-400/30 px-2 py-1 md:py-1.5 rounded-lg text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
             </div>
 
             <div id="auth-ui" class="flex-shrink-0 flex items-center">
-                <button id="btn-login" class="bg-white text-indigo-700 px-3 md:px-6 py-1.5 md:py-2 rounded-xl md:rounded-2xl font-bold hover-base btn-indigo-hover text-xs md:text-base hidden">구글 로그인</button>
+                <button type="button" id="btn-login" class="bg-white text-indigo-700 px-3 md:px-6 py-1.5 md:py-2 rounded-xl md:rounded-2xl font-bold hover-base btn-indigo-hover text-xs md:text-base hidden">구글 로그인</button>
                 <div id="user-profile" class="hidden flex items-center gap-2 md:gap-3 bg-indigo-800/60 p-1 md:p-1.5 pr-4 md:pr-5 rounded-full border border-indigo-400/40 cursor-pointer hover-base btn-indigo-hover" onclick="handleProfileClick()" title="프로필/마이페이지 열기/닫기">
                     <div id="header-avatar-container"></div>
                     <span id="display-name" class="text-xs md:text-sm font-black text-white truncate max-w-[60px] md:max-w-none">동기화...</span>
@@ -79,7 +78,7 @@
             <div class="text-6xl mb-6 hover:-translate-y-2 transition-transform cursor-default">🚪</div>
             <h2 class="text-xl font-black mb-2 text-slate-800">모험을 시작할 준비가 되셨나요?</h2>
             <p class="text-xs text-slate-500 mb-8">구글 계정으로 안전하게 로그인하세요.</p>
-            <button id="btn-login-main" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg shadow-md hover-base btn-indigo-hover flex items-center justify-center gap-2">
+            <button type="button" id="btn-login-main" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-black text-lg shadow-md hover-base btn-indigo-hover flex items-center justify-center gap-2">
                 <svg class="w-5 h-5 bg-white rounded-full p-0.5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
                 Google로 계속하기
             </button>
@@ -240,7 +239,6 @@
         const escapeHTML = (str) => str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         const timeToPercent = (tS) => { const [h, m] = tS.split(':').map(Number); return ((h + (m / 60)) / 24) * 100; };
         
-        // ✅ V3.5.5 핫패치: SVG 지그재그 패턴 및 투명도, 크기 조절로 역동성 부여
         function renderCustomBoxHTML(url, classNames, isBanner = false, isLargeRoomBanner = false) { 
             if (!url) return `<div class="${classNames} bg-slate-200"></div>`; 
             if (url.startsWith('custom|')) { 
@@ -249,7 +247,7 @@
                 const emo = parts[2] || '';
                 
                 if (isLargeRoomBanner) {
-                    const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><text x="30" y="30" font-size="28" text-anchor="middle" dominant-baseline="central" opacity="0.25" transform="rotate(-10 30 30)">${emo}</text><text x="90" y="90" font-size="20" text-anchor="middle" dominant-baseline="central" opacity="0.2" transform="rotate(15 90 90)">${emo}</text></svg>`;
+                    const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><text x="40" y="50" font-size="45" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(-15 40 50)">${emo}</text><text x="250" y="80" font-size="30" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(25 250 80)">${emo}</text><text x="120" y="200" font-size="60" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(10 120 200)">${emo}</text><text x="320" y="260" font-size="40" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(-20 320 260)">${emo}</text><text x="60" y="340" font-size="35" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(5 60 340)">${emo}</text><text x="220" y="380" font-size="50" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(-10 220 380)">${emo}</text><text x="370" y="140" font-size="55" text-anchor="middle" dominant-baseline="central" opacity="0.35" transform="rotate(15 370 140)">${emo}</text></svg>`;
                     const svgData = `data:image/svg+xml,${encodeURIComponent(svgStr).replace(/'/g, '%27').replace(/"/g, '%22')}`;
                     return `<div class="${classNames}" style="background: ${grad}; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;">
                                 <div class="absolute inset-0 bg-pattern-anim" style="background-image: url('${svgData}'); background-repeat: repeat;"></div>
@@ -259,7 +257,7 @@
                     return `<div class="${classNames} avatar-pop" style="background: ${grad}; display: flex; align-items: center; justify-content: center; ${isBanner ? 'font-size: 3rem;' : 'font-size: 1.2em;'} text-shadow: 0 4px 6px rgba(0,0,0,0.1);">${emo}</div>`; 
                 }
             } 
-            return isBanner ? `<div class="${classNames}" style="background-color: ${url}"></div>` : `<img src="${url}" class="${classNames}">`; 
+            return isBanner ? `<div class="${classNames}" style="background-color: ${url}"></div>` : `<img src="${url}" class="${classNames} object-cover">`; 
         }
         
         function generateCode() { const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let res = ''; for(let i=0; i<6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length)); return res; }
@@ -480,10 +478,29 @@
         };
 
         window.openAvatarModal = () => { 
-            studioTarget = "user"; document.getElementById('studio-title').innerText = "🎨 프로필 스튜디오"; document.getElementById('btn-studio-revert').innerText = "구글 사진으로"; toggle('studio-nick-section', true);
-            document.getElementById('studio-nick-input').value = document.getElementById('display-name').innerText;
-            client.from('users').select('avatar_url').eq('id', userState.id).single().then(({data}) => { parseToStudio(data?.avatar_url || ""); toggle('modal-avatar', true); }); 
+            studioTarget = "user"; 
+            document.getElementById('studio-title').innerText = "🎨 프로필 스튜디오"; 
+            document.getElementById('btn-studio-revert').innerText = "구글 사진으로"; 
+            toggle('studio-nick-section', true);
+            
+            client.from('users').select('avatar_url, nickname').eq('id', userState.id).single().then(({data}) => { 
+                const n = data?.nickname || userState.user_metadata?.full_name || userState.user_metadata?.name || "";
+                document.getElementById('studio-nick-input').value = n;
+                
+                const url = data?.avatar_url || userState.user_metadata?.avatar_url || userState.user_metadata?.picture || "";
+                
+                if(url.startsWith('custom|')) {
+                    parseToStudio(url);
+                } else {
+                    tempGrad = GRADIENT_PRESETS[5].value; 
+                    tempEmoji = "🎲"; 
+                    document.getElementById('avatar-preview').innerHTML = `<img src="${url}" class="w-full h-full rounded-full border-4 border-slate-100 object-cover shadow-inner avatar-pop">`;
+                    rerollEmojis();
+                }
+                toggle('modal-avatar', true); 
+            }); 
         };
+
         window.openBannerModal = () => { studioTarget = "session"; document.getElementById('studio-title').innerText = "🎲 세션 배너 스튜디오"; document.getElementById('btn-studio-revert').innerText = "기본 색상으로"; toggle('studio-nick-section', false); parseToStudio(tempSessionBanner); toggle('modal-avatar', true); };
         function parseToStudio(url) { if(url.startsWith('custom|')) { const p = url.split('|'); tempGrad = p[1]; tempEmoji = p[2]; } else { tempGrad = GRADIENT_PRESETS[5].value; tempEmoji = "🎲"; } updateAvatarPreview(); rerollEmojis(); }
         window.closeAvatarModal = () => { toggle('modal-avatar', false); };
@@ -534,11 +551,12 @@
         
         function updateBannerPreview() { document.getElementById('session-banner-preview').innerHTML = renderCustomBoxHTML(tempSessionBanner, 'w-full h-full flex items-center justify-center', true, true); }
         
+        // ✅ V3.6.1 핫패치: 프로필 사진 덮어쓰기(State Leak) 버그 수정
         window.saveMypageNickname = async () => { 
             const n = document.getElementById('mypage-nick-input').value.trim(); 
             if (n && userState) { 
-                const aU = document.getElementById('header-avatar-container').innerHTML.includes('custom|') ? `custom|${tempGrad}|${tempEmoji}` : (userState.user_metadata?.avatar_url || userState.user_metadata?.picture || '');
-                const { error } = await client.from('users').upsert({ id: userState.id, nickname: n, avatar_url: aU }); 
+                // 아바타는 건드리지 않고 닉네임만 update하여 커스텀 데이터 유실 방지
+                const { error } = await client.from('users').update({ nickname: n }).eq('id', userState.id); 
                 if (error) return alert("닉네임 변경 오류: " + error.message);
                 document.getElementById('display-name').innerText = n; 
                 alert("닉네임 변경 완료! ✨"); 
@@ -702,7 +720,7 @@
             document.getElementById('timeline-date-title').innerText = `${m}/${d} (${w}) 타임라인`; 
             
             document.getElementById('timeline-bars').innerHTML = dayAvs.map(a => { 
-                const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = eP - sP; 
+                const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = Math.max(0, eP - sP); 
                 return `<div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users?.nickname || '알 수 없음'}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] font-mono font-black text-white opacity-0 group-hover:opacity-100 z-10 drop-shadow-md">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div>`; 
             }).join(''); 
             
@@ -726,12 +744,14 @@
             }
         };
 
+        // ✅ V3.6.1 핫패치: 일정 등록 시 시간 역전 방어 및 에러 핸들링
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
             const tE = document.getElementById('in-my-end').value; 
             
             if(!sD || !tS || !tE) return alert("날짜와 시간을 입력하세요."); 
+            if(tS >= tE) return alert("종료 시간은 시작 시간보다 이후여야 합니다. (자정을 넘길 경우 이틀로 나누어 등록해주세요)");
             
             const ps = [];
             const targetDates = [];
@@ -747,8 +767,8 @@
                 let sDt = new Date(sParts[0], sParts[1]-1, sParts[2]);
                 let eDt = new Date(eParts[0], eParts[1]-1, eParts[2]);
 
-                if (eDt < sDt) return alert("기간 설정 오류"); 
-                if (selectedWeekdays.length === 0) return alert("요일 선택 필요"); 
+                if (eDt < sDt) return alert("기간 설정 오류: 종료 날짜가 시작 날짜보다 빠를 수 없습니다."); 
+                if (selectedWeekdays.length === 0) return alert("요일 선택이 필요합니다."); 
                 
                 let limit = 365; 
                 for (let d = new Date(sDt); d <= eDt; d.setDate(d.getDate() + 1)) { 
