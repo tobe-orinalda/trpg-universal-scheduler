@@ -42,7 +42,6 @@
     <header class="bg-indigo-700 text-white p-3 md:p-4 shadow-xl sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center gap-2">
             <h1 class="text-[11px] sm:text-sm md:text-xl font-black tracking-tight cursor-pointer truncate pr-1 flex-shrink-0" onclick="goHome()" title="허브로 돌아가기">🎲 TRPG Uni-Sched</h1>
-            
             <div id="header-space-info" class="hidden flex-1 flex justify-center items-center gap-1.5 md:gap-4 overflow-hidden px-1">
                 <span id="header-space-name" class="text-xs md:text-base font-black truncate max-w-[80px] md:max-w-xs text-indigo-100"></span>
                 <button onclick="copySpaceCode()" class="flex items-center gap-1 bg-indigo-800 hover:bg-indigo-900 border border-indigo-500/50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="초대 코드 복사">
@@ -51,7 +50,6 @@
                 <button id="btn-delete-space" onclick="deleteSpace()" class="hidden bg-red-600 hover:bg-red-700 text-white border border-red-500/50 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="공간 영구 삭제">🗑️ <span class="hidden sm:inline">삭제</span></button>
                 <button onclick="exitSpace()" class="bg-indigo-600/50 hover:bg-indigo-500/80 text-indigo-100 border border-indigo-400/30 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
             </div>
-
             <div id="auth-ui" class="flex-shrink-0 flex items-center">
                 <button id="btn-login" class="bg-white text-indigo-700 px-3 md:px-6 py-1.5 md:py-2 rounded-xl md:rounded-2xl font-bold hover-base btn-indigo-hover text-xs md:text-base hidden">구글 로그인</button>
                 <div id="user-profile" class="hidden flex items-center gap-2 md:gap-3 bg-indigo-800/60 p-1 md:p-1.5 pr-4 md:pr-5 rounded-full border border-indigo-400/40 cursor-pointer hover-base btn-indigo-hover" onclick="handleProfileClick()" title="프로필/마이페이지 열기/닫기">
@@ -103,21 +101,34 @@
                     <div class="flex flex-col gap-2 mb-4 md:mb-6 bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100">
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">날짜 선택</label>
                         <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 mb-2">
+                        
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간</label>
                         <div class="flex gap-2 items-center mb-1">
                             <input type="time" id="in-my-start" value="19:00" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500">
                             <span class="text-slate-400 font-bold">~</span>
                             <input type="time" id="in-my-end" value="23:59" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500">
                         </div>
-                        <button type="button" id="btn-toggle-advanced" onclick="toggleAdvancedSchedule()" class="text-[10px] text-indigo-500 font-bold text-right hover:underline mb-2 py-1">+ 여러 날짜/반복 일정 추가</button>
+
+                        <button type="button" id="btn-toggle-advanced" onclick="toggleAdvancedSchedule()" class="text-[10px] text-indigo-500 font-bold text-right hover:underline mb-2 py-1">
+                            + 여러 날짜/반복 일정 추가
+                        </button>
+
                         <div id="advanced-schedule-panel" class="hidden flex flex-col gap-2 border-t border-slate-200 pt-3 mb-2 transition-all">
                             <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">종료 날짜 (기간 설정)</label>
                             <input type="date" id="in-my-end-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 mb-1">
+                            
                             <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">해당 요일만 선택</label>
                             <div class="flex gap-1 justify-between">
-                                <button type="button" onclick="toggleMyDay(1)" id="my-day-1" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">월</button><button type="button" onclick="toggleMyDay(2)" id="my-day-2" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">화</button><button type="button" onclick="toggleMyDay(3)" id="my-day-3" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">수</button><button type="button" onclick="toggleMyDay(4)" id="my-day-4" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">목</button><button type="button" onclick="toggleMyDay(5)" id="my-day-5" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">금</button><button type="button" onclick="toggleMyDay(6)" id="my-day-6" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">토</button><button type="button" onclick="toggleMyDay(0)" id="my-day-0" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
+                                <button type="button" onclick="toggleMyDay(1)" id="my-day-1" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">월</button>
+                                <button type="button" onclick="toggleMyDay(2)" id="my-day-2" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">화</button>
+                                <button type="button" onclick="toggleMyDay(3)" id="my-day-3" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">수</button>
+                                <button type="button" onclick="toggleMyDay(4)" id="my-day-4" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">목</button>
+                                <button type="button" onclick="toggleMyDay(5)" id="my-day-5" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">금</button>
+                                <button type="button" onclick="toggleMyDay(6)" id="my-day-6" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">토</button>
+                                <button type="button" onclick="toggleMyDay(0)" id="my-day-0" class="w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
                             </div>
                         </div>
+
                         <button onclick="addMyAvail()" class="w-full bg-indigo-600 text-white py-3.5 mt-2 rounded-xl font-black shadow-md hover-base btn-indigo-hover text-sm tracking-wide">일정 등록하기</button>
                     </div>
 
@@ -162,8 +173,6 @@
         let locType = 'online', allSessions = [], allMembers = [], currentSessionId = null, masterDate = new Date(), roomAvailsCache = [];
         let selectedWeekdays = [];
         let isAdvancedSchedule = false;
-        
-        // [핵심 패치] 초기 로그인 플래그 (튕김 방지용)
         let isInitialLogin = true; 
         
         const AVAILABLE_TAGS = ['GM리스', 'GMPC', '텍스트세션', '보이스세션', '대면세션', '입문환영', '숙련자추천', '룰북필수', '룰북미소지자가능', '단편(원샷)', '단기(다회차)', '장기/캠페인'];
@@ -199,7 +208,6 @@
             window.scrollTo(0,0);
         }
 
-        // [핵심 패치] 강제 튕김을 방지하는 스마트 로그인 감지기
         client.auth.onAuthStateChange((ev, sess) => { 
             if (sess) { 
                 toggle('btn-login', false); 
@@ -208,7 +216,7 @@
                 userState = null; currentSpace = null; localStorage.removeItem('trpg_current_space');
                 toggle('btn-login', true); toggle('user-profile', false); toggle('header-space-info', false);
                 switchView('view-login'); 
-                isInitialLogin = true; // 로그아웃 시 다시 초기화
+                isInitialLogin = true; 
             } 
         });
 
@@ -220,7 +228,6 @@
             document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
             await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }); 
 
-            // 최초 로그인일 때만 화면 전환 (이후에는 뒤에서 조용히 데이터만 갱신)
             if (isInitialLogin) {
                 isInitialLogin = false;
                 const savedSpace = localStorage.getItem('trpg_current_space');
@@ -480,7 +487,7 @@
             }
         };
 
-        // [핵심 패치: Upsert 엔진 복구 및 타임존 버그 완전 차단]
+        // [최종 병기 패치: 절대 고장 나지 않는 Delete -> Insert 엔진 부활]
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
@@ -489,14 +496,15 @@
             if(!sD || !tS || !tE) return alert("날짜와 시간을 입력하세요."); 
             
             const ps = [];
+            const targetDates = [];
             
             if (!isAdvancedSchedule) {
+                targetDates.push(sD);
                 ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: sD, start_time: tS, end_time: tE });
             } else {
                 const eD = document.getElementById('in-my-end-date').value;
                 const fED = eD || sD; 
                 
-                // 한국 시간 등 타임존 밀림 현상을 방지하는 안전한 Date 파싱
                 const sParts = sD.split('-'); const eParts = fED.split('-');
                 let sDt = new Date(sParts[0], sParts[1]-1, sParts[2]);
                 let eDt = new Date(eParts[0], eParts[1]-1, eParts[2]);
@@ -509,6 +517,7 @@
                     if (limit-- < 0) break; 
                     if (selectedWeekdays.includes(d.getDay())) {
                         const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                        targetDates.push(dateStr);
                         ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: dateStr, start_time: tS, end_time: tE }); 
                     }
                 } 
@@ -516,14 +525,20 @@
             }
             
             try {
-                // UPDATE 마스터키를 받았으므로 아주 우아하게 upsert를 실행합니다!
-                const { error } = await client.from('session_availability').upsert(ps, { onConflict: 'session_id,user_id,available_date' });
-                if (error) alert("일정 등록 오류: " + error.message); 
-                else {
+                // 1. 철벽 우회: 내가 추가하려는 날짜들에 있는 기존 내 일정을 통째로 지워버림!
+                await client.from('session_availability').delete().eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
+                
+                // 2. 백지 상태에서 새로운 일정을 안전하게 꽂아 넣음!
+                const { error } = await client.from('session_availability').insert(ps);
+                
+                if (error) {
+                    alert("일정 등록 중 DB 오류가 발생했습니다: " + error.message); 
+                } else {
                     await renderRoom(); // 조율표 새로고침
                 }
             } catch (err) {
-                alert("시스템 오류가 발생했습니다.");
+                console.error(err);
+                alert("시스템 접속 오류가 발생했습니다: " + err.message);
             }
         };
 
