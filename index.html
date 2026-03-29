@@ -22,9 +22,10 @@
         @media (min-width: 640px) { .grid-7 { gap: 4px; } }
         .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; padding: 2px; border-radius: 8px; border: 1px solid #f1f5f9; background: #fff; }
         @media (min-width: 640px) { .cal-day { padding: 4px; border-radius: 12px; } }
+        /* V3.6.6: 스케일(scale) 확장을 제거하여 덜컥거림 및 모바일 레이아웃 붕괴 원천 차단 */
         .heatmap-cell { border-radius: 10px; padding: 8px 4px; text-align: center; transition: 0.2s; border: 2px solid transparent; cursor: pointer; position: relative; }
         @media (min-width: 640px) { .heatmap-cell { border-radius: 12px; padding: 12px 8px; } }
-        .heatmap-cell:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 20; border-color: #818cf8; }
+        .heatmap-cell:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 20; border-color: #818cf8; }
         .hm-0 { background: #f8fafc; color: #94a3b8; } .hm-1 { background: #e0e7ff; color: #4f46e5; } .hm-2 { background: #c7d2fe; color: #4338ca; } .hm-3 { background: #a5b4fc; color: #3730a3; } .hm-max { background: #4f46e5; color: #ffffff; box-shadow: 0 0 15px rgba(79,70,229,0.4); border-color: #3730a3; }
         .badge-status { font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
         @media (min-width: 640px) { .badge-status { font-size: 9px; padding: 3px 8px; border-radius: 6px; } }
@@ -43,7 +44,7 @@
 </head>
 <body class="text-slate-800 relative pb-16">
 
-    <div id="global-tooltip" class="absolute hidden bg-white border-2 border-indigo-100 text-slate-800 text-[11px] p-3 rounded-2xl z-[9999] shadow-2xl pointer-events-none transition-opacity duration-150 opacity-0 transform -translate-y-full w-48 sm:w-52"></div>
+    <div id="global-tooltip" class="absolute hidden bg-white border-2 border-indigo-100 text-slate-800 text-[11px] p-3 rounded-2xl z-[9999] shadow-2xl pointer-events-none transition-opacity duration-150 opacity-0 w-48 sm:w-52 max-w-[90vw]"></div>
 
     <button type="button" onclick="toggle('modal-donate', true)" class="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 md:px-5 md:py-3 rounded-full shadow-xl font-bold text-xs md:text-sm flex items-center gap-2 hover-base hover:bg-indigo-800 z-50 border-2 border-white/20">
         ☕ 개발자에게 커피 사주기
@@ -702,22 +703,32 @@
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="text-red-400 hover:text-red-600 text-base font-black px-2 hover-base hover:-translate-y-0.5">×</button></div>`).join('');
         }
 
-        // ✅ V3.6.6 핫패치: 툴팁 꼬리(Tail) CSS Transform 충돌을 완전히 용접하고 Y축 고도 마진을 축소
+        // ✅ V3.6.6: 다중 방어선(Clamp) 툴팁 적용 (X축 화면 이탈 방지 + Y축 겹침 최적화 + 텍스트 무한 증식 차단)
         window.showTooltip = (el, title, raw) => { 
             const tt = document.getElementById('global-tooltip'); 
-            tt.innerHTML = `<div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white">${title}</div><div class="bg-white">${raw}</div><div class="absolute -bottom-[6px] w-3.5 h-3.5 bg-white border-b-2 border-r-2 border-indigo-100" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`; 
+            tt.innerHTML = `<div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white line-clamp-2">${title}</div><div class="bg-white line-clamp-4 leading-relaxed">${raw}</div>`; 
             tt.classList.remove('hidden'); 
+            
             const r = el.getBoundingClientRect(); 
-            tt.style.left = (r.left + (r.width/2) - (tt.offsetWidth/2)) + 'px'; 
-            // 높이 마진을 기존 -10px에서 -2px로 대폭 깎아 꼬리 부분을 대상 타일과 물리적으로 결합
-            tt.style.top = (window.scrollY + r.top - tt.offsetHeight - 2) + 'px'; 
+            
+            // X-Axis Clamp: 모바일 화면 좌우 뚫고 나감 방지 알고리즘
+            let leftPos = r.left + (r.width/2) - (tt.offsetWidth/2);
+            const padding = 10;
+            if (leftPos < padding) leftPos = padding;
+            if (leftPos + tt.offsetWidth > window.innerWidth - padding) leftPos = window.innerWidth - tt.offsetWidth - padding;
+            
+            // Y-Axis Overlay: 마우스 깜빡임 루프를 피하면서 상단 테두리에 미세하게 걸치는 고도 최적화
+            let topPos = window.scrollY + r.top - tt.offsetHeight + 15; 
+            
+            tt.style.left = leftPos + 'px'; 
+            tt.style.top = topPos + 'px'; 
             setTimeout(() => tt.classList.add('opacity-100'), 10); 
         };
         window.hideTooltip = () => { const tt = document.getElementById('global-tooltip'); tt.classList.remove('opacity-100'); tt.classList.add('hidden'); };
         document.addEventListener('touchstart', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); }, {passive: true});
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
 
-        // ✅ V3.6.6 핫패치: 일정 확정 보더를 위한 독립 레이어(confLayer) 추가 및 텍스트 Z-index 보정
+        // V3.6.6: 일정 확정 보더를 위한 독립 레이어(confLayer) 유지
         function renderHeatmap(avs, tMs, confSchedules = []) { 
             const dM = {}; 
             avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
