@@ -469,8 +469,43 @@
         document.addEventListener('touchstart', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); }, {passive: true});
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
 
-        function renderHeatmap(avs, tMs) { const dM = {}; avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); const sDs = Object.keys(dM).sort(), hm = document.getElementById('room-heatmap'); hm.innerHTML = sDs.length === 0 ? `<div class="col-span-full py-10 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border border-slate-100">일정을 등록해 주세요!</div>` : sDs.map(date => { const dayAvs = dM[date], cnt = new Set(dayAvs.map(x => x.user_id)).size; let cCls = 'hm-0'; if(cnt > 0) cCls = 'hm-1'; if(cnt >= tMs/2) cCls = 'hm-2'; if(cnt >= tMs-1) cCls = 'hm-3'; if(cnt === tMs && tMs > 1) cCls = 'hm-max'; const dO = new Date(date), m = date.split('-')[1], d = date.split('-')[2], w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); const list = escapeHTML(dayAvs.map(a => `<div class="flex justify-between border-b border-indigo-50 gap-3 text-[9px] py-0.5"><span class="font-bold truncate">${a.users.nickname}</span><span class="text-indigo-500 font-mono flex-shrink-0">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div>`).join('')); return `<div class="heatmap-cell ${cCls} flex flex-col justify-center items-center relative" onmouseenter="showTooltip(this, '${m}/${d}', '${list}')" onmouseleave="hideTooltip()" onclick="openTimeline('${date}')">${cnt === tMs && tMs > 1 ? `<div class="absolute -top-2 -right-1 text-sm drop-shadow-md">👑</div>` : ''}<span class="text-[8px] opacity-80 font-bold">${m}월</span><span class="text-sm md:text-xl font-black">${d}일</span><span class="text-[8px] mb-0.5 font-bold">(${w})</span><span class="text-[8px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold shadow-inner">${cnt}명</span></div>`; }).join(''); document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); }
-        window.openTimeline = (dateStr) => { hideTooltip(); const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); if(dayAvs.length === 0) return; const dO = new Date(dateStr), m = String(dO.getMonth()+1).padStart(2,'0'), d = String(dO.getDate()).padStart(2,'0'), w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); document.getElementById('timeline-date-title').innerText = `${m}/${d} (${w}) 타임라인`; document.getElementById('timeline-bars').innerHTML = dayAvs.map(a => { const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = eP - sP; return `<div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users.nickname}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] font-mono font-black text-white opacity-0 group-hover:opacity-100 z-10 drop-shadow-md">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div>`; }).join(''); toggle('timeline-panel', true); setTimeout(() => document.getElementById('timeline-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); };
+        // [핵심 패치: 닉네임과 아바타 불러오기 에러(Null) 원천 차단 - '?.']
+        function renderHeatmap(avs, tMs) { 
+            const dM = {}; 
+            avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
+            const sDs = Object.keys(dM).sort(), hm = document.getElementById('room-heatmap'); 
+            hm.innerHTML = sDs.length === 0 ? `<div class="col-span-full py-10 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border border-slate-100">일정을 등록해 주세요!</div>` : sDs.map(date => { 
+                const dayAvs = dM[date], cnt = new Set(dayAvs.map(x => x.user_id)).size; 
+                let cCls = 'hm-0'; if(cnt > 0) cCls = 'hm-1'; if(cnt >= tMs/2) cCls = 'hm-2'; if(cnt >= tMs-1) cCls = 'hm-3'; if(cnt === tMs && tMs > 1) cCls = 'hm-max'; 
+                const dO = new Date(date), m = date.split('-')[1], d = date.split('-')[2], w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); 
+                
+                // [방어코드 추가] a.users?.nickname || '알 수 없음'
+                const list = escapeHTML(dayAvs.map(a => `<div class="flex justify-between border-b border-indigo-50 gap-3 text-[9px] py-0.5"><span class="font-bold truncate">${a.users?.nickname || '알 수 없음'}</span><span class="text-indigo-500 font-mono flex-shrink-0">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div>`).join('')); 
+                
+                return `<div class="heatmap-cell ${cCls} flex flex-col justify-center items-center relative" onmouseenter="showTooltip(this, '${m}/${d}', '${list}')" onmouseleave="hideTooltip()" onclick="openTimeline('${date}')">${cnt === tMs && tMs > 1 ? `<div class="absolute -top-2 -right-1 text-sm drop-shadow-md">👑</div>` : ''}<span class="text-[8px] opacity-80 font-bold">${m}월</span><span class="text-sm md:text-xl font-black">${d}일</span><span class="text-[8px] mb-0.5 font-bold">(${w})</span><span class="text-[8px] bg-white/20 px-1.5 py-0.5 rounded-full font-bold shadow-inner">${cnt}명</span></div>`; 
+            }).join(''); 
+            
+            // [방어코드 추가] u?.avatar_url
+            document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
+        }
+
+        window.openTimeline = (dateStr) => { 
+            hideTooltip(); 
+            const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); 
+            if(dayAvs.length === 0) return; 
+            const dO = new Date(dateStr), m = String(dO.getMonth()+1).padStart(2,'0'), d = String(dO.getDate()).padStart(2,'0'), w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); 
+            document.getElementById('timeline-date-title').innerText = `${m}/${d} (${w}) 타임라인`; 
+            
+            // [방어코드 추가] a.users?.nickname || '알 수 없음'
+            document.getElementById('timeline-bars').innerHTML = dayAvs.map(a => { 
+                const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = eP - sP; 
+                return `<div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users?.nickname || '알 수 없음'}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] font-mono font-black text-white opacity-0 group-hover:opacity-100 z-10 drop-shadow-md">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div>`; 
+            }).join(''); 
+            
+            toggle('timeline-panel', true); 
+            setTimeout(() => document.getElementById('timeline-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100); 
+        };
+
         window.closeTimeline = () => { toggle('timeline-panel', false); };
         window.toggleMyDay = (day) => { const b = document.getElementById(`my-day-${day}`); if (selectedWeekdays.includes(day)) { selectedWeekdays = selectedWeekdays.filter(d => d !== day); b.className = "w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors"; } else { selectedWeekdays.push(day); b.className = (day === 0) ? "w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors"; } };
         
@@ -487,7 +522,6 @@
             }
         };
 
-        // [최종 병기 패치: 절대 고장 나지 않는 Delete -> Insert 엔진 부활]
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
@@ -525,16 +559,15 @@
             }
             
             try {
-                // 1. 철벽 우회: 내가 추가하려는 날짜들에 있는 기존 내 일정을 통째로 지워버림!
+                // Delete & Insert 엔진으로 복구! (Supabase 에러 100% 무시)
                 await client.from('session_availability').delete().eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
                 
-                // 2. 백지 상태에서 새로운 일정을 안전하게 꽂아 넣음!
                 const { error } = await client.from('session_availability').insert(ps);
                 
                 if (error) {
                     alert("일정 등록 중 DB 오류가 발생했습니다: " + error.message); 
                 } else {
-                    await renderRoom(); // 조율표 새로고침
+                    await renderRoom(); // 여기서 빈값 에러가 나지 않도록 위에서 방어코드를 둘렀습니다!
                 }
             } catch (err) {
                 console.error(err);
