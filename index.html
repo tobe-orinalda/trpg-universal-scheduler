@@ -43,12 +43,14 @@
         <div class="container mx-auto flex justify-between items-center gap-2">
             <h1 class="text-[11px] sm:text-sm md:text-xl font-black tracking-tight cursor-pointer truncate pr-1 flex-shrink-0" onclick="goHome()" title="허브로 돌아가기">🎲 TRPG Uni-Sched</h1>
             
-            <div id="header-space-info" class="hidden flex-1 flex justify-center items-center gap-2 md:gap-4 overflow-hidden px-2">
-                <span id="header-space-name" class="text-xs md:text-base font-black truncate max-w-[100px] md:max-w-xs text-indigo-100"></span>
+            <div id="header-space-info" class="hidden flex-1 flex justify-center items-center gap-1.5 md:gap-4 overflow-hidden px-1">
+                <span id="header-space-name" class="text-xs md:text-base font-black truncate max-w-[80px] md:max-w-xs text-indigo-100"></span>
                 <button onclick="copySpaceCode()" class="flex items-center gap-1 bg-indigo-800 hover:bg-indigo-900 border border-indigo-500/50 px-2 md:px-3 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="초대 코드 복사">
                     <span id="header-space-code" class="text-indigo-200 tracking-widest uppercase"></span> 📋
                 </button>
-                <button onclick="exitSpace()" class="bg-red-500/20 hover:bg-red-500/40 text-red-100 border border-red-400/30 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
+                <button id="btn-delete-space" onclick="deleteSpace()" class="hidden bg-red-600 hover:bg-red-700 text-white border border-red-500/50 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0 shadow-inner" title="공간 영구 삭제">🗑️ <span class="hidden sm:inline">삭제</span></button>
+                
+                <button onclick="exitSpace()" class="bg-indigo-600/50 hover:bg-indigo-500/80 text-indigo-100 border border-indigo-400/30 px-2 py-1 md:py-1.5 rounded-lg transition-colors text-[9px] md:text-xs font-bold whitespace-nowrap flex-shrink-0" title="공간 나가기">🚪 나가기</button>
             </div>
 
             <div id="auth-ui" class="flex-shrink-0 flex items-center">
@@ -92,7 +94,7 @@
         </div>
 
         <div id="view-room" class="hidden">
-            <button id="btn-back-lobby" onclick="goLobby()" class="hidden mb-4 md:mb-6 text-indigo-500 font-bold hover:underline text-sm">← 로비로 돌아가기</button>
+            <button id="btn-back-lobby" onclick="goHome()" class="mb-4 md:mb-6 text-indigo-500 font-bold hover:underline text-sm">← 뒤로 가기</button>
             <div id="room-header" class="bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200 mb-6 md:mb-8 relative overflow-hidden flex flex-col justify-center items-center text-center"></div>
             <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
                 <div class="w-full lg:w-2/3 bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200"><div class="flex justify-between items-end mb-6 border-b pb-4"><div><h3 class="text-lg md:text-xl font-black mb-1">🔥 일정 조율표</h3><p class="text-[9px] md:text-[10px] text-slate-400">날짜를 클릭해 상세 시간을 확인하세요.</p></div><div id="room-members-toggle" class="flex flex-wrap gap-1 justify-end max-w-[40%]"></div></div><div class="overflow-y-auto max-h-[300px] md:max-h-[350px] pt-2"><div id="room-heatmap" class="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-2 md:gap-4"></div></div><div id="timeline-panel" class="hidden mt-6 md:mt-8 border-t-2 border-indigo-100 pt-6 md:pt-8 bg-slate-50/50 -mx-5 md:-mx-8 px-5 md:px-8 pb-4 rounded-b-[1.5rem] md:rounded-b-[2.5rem]"><div class="flex justify-between items-center mb-4 md:mb-6"><h4 id="timeline-date-title" class="text-sm md:text-lg font-black text-indigo-700 truncate mr-2">상세 타임라인</h4><button onclick="closeTimeline()" class="text-[10px] font-bold bg-white text-slate-400 hover:text-red-500 px-2 md:px-3 py-1 rounded-full border shadow-sm transition-colors flex-shrink-0">닫기 ×</button></div><div class="relative h-6 border-b border-slate-300 mb-4 text-[8px] md:text-[9px] font-mono text-slate-400 pl-16 md:pl-20"><div class="relative w-full h-full"><span class="absolute left-0 -translate-x-1/2">00</span><span class="absolute left-1/4 -translate-x-1/2">06</span><span class="absolute left-2/4 -translate-x-1/2">12</span><span class="absolute left-3/4 -translate-x-1/2">18</span><span class="absolute right-0 translate-x-1/2">24</span></div></div><div id="timeline-bars" class="space-y-2 md:space-y-3 relative z-10"></div></div></div>
@@ -125,6 +127,9 @@
 
         <div id="modal-create" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 md:p-4"><div class="bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative overflow-y-auto max-h-[90vh]"><h3 id="modal-title" class="text-xl md:text-2xl font-black mb-6 md:mb-8">🎲 세션 설정</h3><input type="hidden" id="edit-session-id"><div class="space-y-4 mb-8 text-left text-sm"><div class="relative w-full h-32 rounded-2xl border-2 border-slate-100 overflow-hidden group cursor-pointer hover-base mb-4" onclick="openBannerModal()"><div id="session-banner-preview" class="w-full h-full flex items-center justify-center text-5xl"></div><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="text-white font-black text-xs">🎨 배너 디자인 변경</span></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="text" id="in-title" placeholder="세션 제목" class="w-full p-3 md:p-4 bg-slate-50 border-2 rounded-xl outline-none font-bold"><div class="relative w-full flex gap-2"><select id="in-rule-primary" onchange="handleRuleSelection('primary')" class="w-full p-3 md:p-4 bg-slate-50 border-2 rounded-xl outline-none text-xs md:text-sm font-bold"><option value="" disabled selected>사용 룰 선택</option><option value="크툴루의 부름(CoC)">크툴루의 부름(CoC)</option><option value="인세인(inSANe)">인세인(inSANe)</option><option value="마기카로기아(마기로기)">마기카로기아(마기로기)</option><option value="더블크로스(Double Cross)">더블크로스(Double Cross)</option><option value="던전월드">던전월드</option><option value="피아스코">피아스코</option><option disabled>───</option><option value="show_all">📜 전체 목록...</option><option value="custom">✏️ 직접 입력...</option></select><select id="in-rule-all" onchange="handleRuleSelection('all')" class="hidden w-full p-3 md:p-4 border-2 border-indigo-200 bg-indigo-50 rounded-xl text-xs md:text-sm font-bold"></select><input type="text" id="in-rule-custom" placeholder="룰 이름" class="hidden absolute inset-0 w-full h-full p-3 bg-white border-2 border-indigo-500 rounded-xl text-xs md:text-sm font-bold"><button id="btn-rule-cancel" type="button" onclick="resetRuleUI()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black p-2 bg-white rounded-full z-10">×</button></div></div><div class="bg-slate-50 p-3 md:p-4 rounded-xl border-2 border-slate-100"><label class="text-[9px] font-bold text-slate-400 mb-2 block uppercase tracking-widest">세션 키워드</label><div id="modal-tags-container" class="flex flex-wrap gap-1.5"></div></div><textarea id="in-desc" placeholder="시나리오 개요 및 공지사항" class="w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-batang outline-none focus:border-indigo-400"></textarea><div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center"><div class="relative w-full"><select id="in-cap" onchange="toggleCustomCap()" class="w-full p-3 md:p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-400"><option value="1">1명</option><option value="2">2명</option><option value="3">3명</option><option value="4" selected>4명</option><option value="5">5명</option><option value="6">6명</option><option value="7">7명</option><option value="custom">직접 입력...</option></select><input type="number" id="in-cap-custom" placeholder="인원수" class="hidden absolute inset-0 w-full h-full p-4 bg-white border-2 border-indigo-500 rounded-xl text-center font-bold outline-none"><button id="btn-cap-cancel" type="button" onclick="cancelCustomCap()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black p-2 bg-white rounded-full">×</button></div><div class="flex gap-2"><button id="mode-on" type="button" class="flex-1 py-3 rounded-xl border-2 text-xs md:text-sm font-bold transition-colors">온라인</button><button id="mode-off" type="button" class="flex-1 py-3 rounded-xl border-2 text-xs md:text-sm font-bold transition-colors">오프라인</button></div></div><input type="text" id="in-loc" placeholder="링크 또는 오프라인 장소" class="w-full p-3 md:p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-400"></div><div class="flex gap-3"><button id="btn-create-delete" type="button" class="hidden px-4 md:px-5 py-3 md:py-4 bg-red-50 text-red-500 font-bold rounded-xl hover-base text-lg md:text-xl" title="삭제">🗑️</button><button id="btn-create-close" type="button" class="flex-1 py-3 md:py-4 bg-slate-100 text-slate-500 font-bold rounded-xl hover-base text-sm md:text-base whitespace-nowrap">취소</button><button id="btn-create-submit" type="button" class="flex-1 py-3 md:py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover-base text-sm md:text-base whitespace-nowrap">저장하기</button></div></div></div>
 
+        <div id="modal-avatar" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] flex items-center justify-center p-4"><div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative text-center"><h3 id="studio-title" class="text-xl font-black mb-4 text-slate-800">🎨 스튜디오</h3><div class="mb-6 flex justify-center"><div id="avatar-preview" class="avatar-pop w-24 h-24 rounded-full border-4 border-slate-100 shadow-inner flex items-center justify-center text-4xl"></div></div><div id="studio-nick-section" class="mb-6 text-left"><label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">사용할 닉네임</label><input type="text" id="studio-nick-input" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold outline-none focus:border-indigo-500 text-sm text-center"></div><div class="mb-6 text-left"><label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">테마 컬러</label><div class="flex flex-wrap gap-2 justify-center" id="gradient-palette"></div></div><div class="mb-6 text-left"><div class="flex justify-between items-end mb-2"><label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">럭키 이모지</label><button onclick="rerollEmojis()" class="text-[10px] font-bold text-indigo-500 hover:underline">🔄 리롤</button></div><div class="grid grid-cols-5 gap-2 mb-3" id="emoji-gacha-container"></div><div class="flex gap-2 items-center bg-slate-50 p-2 rounded-xl border border-slate-200"><input type="text" id="avatar-custom-emoji" maxlength="2" oninput="applyCustomEmoji()" class="w-full text-center p-1 bg-white border border-slate-200 rounded text-lg outline-none" placeholder="🎲 이모지 직접입력"></div></div><div class="flex flex-col gap-2"><button id="btn-studio-save" class="w-full py-3 bg-indigo-600 text-white font-black rounded-xl hover-base shadow-sm">저장하기</button><div class="flex gap-2"><button id="btn-studio-revert" class="flex-1 py-2 bg-white border-2 border-slate-200 text-slate-500 text-xs font-bold rounded-xl hover-base whitespace-nowrap">기본으로</button><button onclick="closeAvatarModal()" class="flex-1 py-2 bg-slate-100 text-slate-500 text-xs font-bold rounded-xl hover-base whitespace-nowrap">취소</button></div></div></div></div>
+    </main>
+
     <script>
         const S_URL = 'https://eebjvpvwakjumkanohzs.supabase.co', S_KEY = 'sb_publishable_Rlck6NADMmEyIRBz4kua5Q_izgzKAPO';
         const client = supabase.createClient(S_URL, S_KEY);
@@ -154,24 +159,17 @@
         });
 
         // =========================================
-        // [핵심 패치: 단일 통합 라우팅 엔진 (Zwei Fliegen)]
+        // [단일 통합 라우팅 엔진 (Zwei Fliegen)]
         // =========================================
         let activeViewBeforeMypage = 'view-hub';
 
         function switchView(viewId) {
-            // 모든 메인 화면을 반복문으로 확인하여 선택된 화면만 켜고 나머지는 숨김 (화면 겹침 완벽 차단)
             ['view-login', 'view-hub', 'view-lobby', 'view-room', 'view-mypage'].forEach(id => {
                 toggle(id, id === viewId);
             });
-            
-            // 로그인 화면은 flex 속성을 위해 별도 처리
             const loginEl = document.getElementById('view-login');
             if(loginEl) loginEl.style.display = (viewId === 'view-login') ? 'flex' : 'none';
-            
-            // 마이페이지를 접었을 때 돌아갈 이전 화면을 저장해 둠
-            if (viewId !== 'view-mypage' && viewId !== 'view-login') {
-                activeViewBeforeMypage = viewId;
-            }
+            if (viewId !== 'view-mypage' && viewId !== 'view-login') activeViewBeforeMypage = viewId;
             window.scrollTo(0,0);
         }
 
@@ -232,6 +230,13 @@
             document.getElementById('header-space-name').innerText = currentSpace.space_name;
             document.getElementById('header-space-code').innerText = currentSpace.space_code;
             
+            // [핵심 패치] 현재 공간의 방장(Creator)인 경우에만 붉은 '삭제' 버튼 표시
+            if (currentSpace.creator_id === userState.id) {
+                document.getElementById('btn-delete-space').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-delete-space').classList.add('hidden');
+            }
+
             await fetchGlobalData(); 
             
             if(currentSpace.space_type === 'large') {
@@ -248,6 +253,28 @@
             }
         }
 
+        // [핵심 패치] 공간 영구 삭제 (Doppelt genäht)
+        window.deleteSpace = async () => {
+            if (!currentSpace || !userState || currentSpace.creator_id !== userState.id) return;
+            
+            const confirmName = prompt(`🚨 경고: 공간 영구 삭제\n\n정말로 [${currentSpace.space_name}] 공간을 삭제하시겠습니까?\n이 공간에 속한 모든 세션과 참가자 일정이 영구적으로 증발합니다.\n\n삭제를 원하시면 아래 입력창에 공간 이름(${currentSpace.space_name})을 정확히 입력하세요.`);
+            
+            if (confirmName !== currentSpace.space_name) {
+                if (confirmName !== null) alert("입력하신 이름이 일치하지 않아 삭제가 취소되었습니다. 휴! 😮‍💨");
+                return;
+            }
+
+            // DB에서 해당 공간을 삭제합니다. (ON DELETE CASCADE로 인해 관련된 모든 세션도 자동 폭파됩니다.)
+            const { error } = await client.from('spaces').delete().eq('id', currentSpace.id);
+            if (error) return alert("공간 삭제 중 오류가 발생했습니다: " + error.message);
+            
+            alert("공간이 영구적으로 삭제되었습니다.");
+            
+            // 허브로 복귀 및 흔적 지우기
+            exitSpace();
+            if(!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids();
+        };
+
         window.exitSpace = () => {
             currentSpace = null; currentSessionId = null; localStorage.removeItem('trpg_current_space');
             toggle('header-space-info', false); 
@@ -259,16 +286,15 @@
             navigator.clipboard.writeText(currentSpace.space_code).then(() => alert("입장 코드가 복사되었습니다! ✨ 지인들에게 공유해 주세요."));
         };
 
-        // [핵심 패치: 마이페이지 토글 (접고 펴기) 기능 탑재]
         window.handleProfileClick = () => {
             if(currentSpace && currentSpace.space_type === 'small') {
-                openAvatarModal(); // 소규모 팀은 곧바로 아바타 모달만 염
+                openAvatarModal(); 
             } else {
                 const isMypageOpen = !document.getElementById('view-mypage').classList.contains('hidden');
                 if (isMypageOpen) {
-                    switchView(activeViewBeforeMypage); // 접기 (원래 있던 곳으로 귀환)
+                    switchView(activeViewBeforeMypage); 
                 } else {
-                    goMypage(); // 펴기
+                    goMypage(); 
                 }
             }
         };
@@ -294,6 +320,13 @@
                     document.getElementById('header-space-name').innerText = currentSpace.space_name;
                     document.getElementById('header-space-code').innerText = currentSpace.space_code;
                     toggle('header-space-info', true);
+                    
+                    if (currentSpace.creator_id === userState.id) {
+                        document.getElementById('btn-delete-space').classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-delete-space').classList.add('hidden');
+                    }
+
                     await fetchGlobalData();
                 }
             }
