@@ -22,10 +22,12 @@
         @media (min-width: 640px) { .grid-7 { gap: 4px; } }
         .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; padding: 2px; border-radius: 8px; border: 1px solid #f1f5f9; background: #fff; }
         @media (min-width: 640px) { .cal-day { padding: 4px; border-radius: 12px; } }
-        /* V3.6.6: 스케일(scale) 확장을 제거하여 덜컥거림 및 모바일 레이아웃 붕괴 원천 차단 */
+        
+        /* V3.6.7: scale 팽창 제거, translateY와 그림자만으로 Hover 구현하여 스크롤바/덜컥거림 영구 차단 */
         .heatmap-cell { border-radius: 10px; padding: 8px 4px; text-align: center; transition: 0.2s; border: 2px solid transparent; cursor: pointer; position: relative; }
         @media (min-width: 640px) { .heatmap-cell { border-radius: 12px; padding: 12px 8px; } }
         .heatmap-cell:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 20; border-color: #818cf8; }
+        
         .hm-0 { background: #f8fafc; color: #94a3b8; } .hm-1 { background: #e0e7ff; color: #4f46e5; } .hm-2 { background: #c7d2fe; color: #4338ca; } .hm-3 { background: #a5b4fc; color: #3730a3; } .hm-max { background: #4f46e5; color: #ffffff; box-shadow: 0 0 15px rgba(79,70,229,0.4); border-color: #3730a3; }
         .badge-status { font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
         @media (min-width: 640px) { .badge-status { font-size: 9px; padding: 3px 8px; border-radius: 6px; } }
@@ -44,7 +46,7 @@
 </head>
 <body class="text-slate-800 relative pb-16">
 
-    <div id="global-tooltip" class="absolute hidden bg-white border-2 border-indigo-100 text-slate-800 text-[11px] p-3 rounded-2xl z-[9999] shadow-2xl pointer-events-none transition-opacity duration-150 opacity-0 w-48 sm:w-52 max-w-[90vw]"></div>
+    <div id="global-tooltip" class="fixed hidden bg-white border-2 border-indigo-100 text-slate-800 text-[11px] p-3 rounded-2xl z-[9999] shadow-2xl pointer-events-none transition-opacity duration-150 opacity-0 w-48 sm:w-52 max-w-[90vw]"></div>
 
     <button type="button" onclick="toggle('modal-donate', true)" class="fixed bottom-4 right-4 bg-indigo-600 text-white px-4 py-2 md:px-5 md:py-3 rounded-full shadow-xl font-bold text-xs md:text-sm flex items-center gap-2 hover-base hover:bg-indigo-800 z-50 border-2 border-white/20">
         ☕ 개발자에게 커피 사주기
@@ -703,32 +705,51 @@
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="text-red-400 hover:text-red-600 text-base font-black px-2 hover-base hover:-translate-y-0.5">×</button></div>`).join('');
         }
 
-        // ✅ V3.6.6: 다중 방어선(Clamp) 툴팁 적용 (X축 화면 이탈 방지 + Y축 겹침 최적화 + 텍스트 무한 증식 차단)
+        // ✅ V3.6.7: Smart Auto-Flip 로직 적용 및 고도(Height) 최적화로 직관성 보완
         window.showTooltip = (el, title, raw) => { 
             const tt = document.getElementById('global-tooltip'); 
-            tt.innerHTML = `<div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white line-clamp-2">${title}</div><div class="bg-white line-clamp-4 leading-relaxed">${raw}</div>`; 
+            
+            // 첫 렌더링(크기 계산을 위해 opacity-0 상태 유지)
             tt.classList.remove('hidden'); 
+            tt.innerHTML = `<div class="relative z-10"><div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white line-clamp-2">${title}</div><div class="bg-white line-clamp-4 leading-relaxed">${raw}</div></div>`; 
             
             const r = el.getBoundingClientRect(); 
+            const ttW = tt.offsetWidth;
+            const ttH = tt.offsetHeight;
             
-            // X-Axis Clamp: 모바일 화면 좌우 뚫고 나감 방지 알고리즘
-            let leftPos = r.left + (r.width/2) - (tt.offsetWidth/2);
+            // 1. X축 브레이크(Clamp): 모바일 화면 벗어남 방어
+            let leftPos = r.left + (r.width/2) - (ttW/2);
             const padding = 10;
             if (leftPos < padding) leftPos = padding;
-            if (leftPos + tt.offsetWidth > window.innerWidth - padding) leftPos = window.innerWidth - tt.offsetWidth - padding;
+            if (leftPos + ttW > window.innerWidth - padding) leftPos = window.innerWidth - ttW - padding;
             
-            // Y-Axis Overlay: 마우스 깜빡임 루프를 피하면서 상단 테두리에 미세하게 걸치는 고도 최적화
-            let topPos = window.scrollY + r.top - tt.offsetHeight + 15; 
+            // 2. Y축 스마트 플립(Auto-Flip): 화면 아래 여유 공간 스캔
+            let topPos;
+            const spaceBelow = window.innerHeight - r.bottom;
+            
+            if (spaceBelow > ttH + 20) {
+                // 기본 세팅: 카드 바로 아래로 출력 (꼬리는 위를 향함)
+                topPos = r.bottom - 4; // 카드 안쪽으로 4px 용접(Overlap)
+                tt.innerHTML += `<div class="absolute -top-[6px] w-3.5 h-3.5 bg-white border-t-2 border-l-2 border-indigo-100 z-0" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`;
+            } else {
+                // 방어 모드: 공간이 부족하면 카드 위쪽으로 뒤집어 출력 (꼬리는 아래를 향함)
+                topPos = r.top - ttH + 4; // 카드 안쪽으로 4px 용접(Overlap)
+                tt.innerHTML += `<div class="absolute -bottom-[6px] w-3.5 h-3.5 bg-white border-b-2 border-r-2 border-indigo-100 z-0" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`;
+            }
             
             tt.style.left = leftPos + 'px'; 
             tt.style.top = topPos + 'px'; 
+            
             setTimeout(() => tt.classList.add('opacity-100'), 10); 
         };
+
         window.hideTooltip = () => { const tt = document.getElementById('global-tooltip'); tt.classList.remove('opacity-100'); tt.classList.add('hidden'); };
+        
+        // 터치 및 스크롤 시 툴팁을 즉시 폐기하여 뷰포트 고정에 따른 잔상(Ghost) 차단
         document.addEventListener('touchstart', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); }, {passive: true});
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
+        window.addEventListener('scroll', hideTooltip, {passive: true});
 
-        // V3.6.6: 일정 확정 보더를 위한 독립 레이어(confLayer) 유지
         function renderHeatmap(avs, tMs, confSchedules = []) { 
             const dM = {}; 
             avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
