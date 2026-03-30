@@ -23,7 +23,6 @@
         .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; padding: 2px; border-radius: 8px; border: 1px solid #f1f5f9; background: #fff; }
         @media (min-width: 640px) { .cal-day { padding: 4px; border-radius: 12px; } }
         
-        /* V3.6.7: scale 팽창 제거, translateY와 그림자만으로 Hover 구현하여 스크롤바/덜컥거림 영구 차단 */
         .heatmap-cell { border-radius: 10px; padding: 8px 4px; text-align: center; transition: 0.2s; border: 2px solid transparent; cursor: pointer; position: relative; }
         @media (min-width: 640px) { .heatmap-cell { border-radius: 12px; padding: 12px 8px; } }
         .heatmap-cell:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 20; border-color: #818cf8; }
@@ -42,6 +41,11 @@
 
         @keyframes slideBg { 0% { background-position: 0 0; } 100% { background-position: 400px 400px; } }
         .bg-pattern-anim { animation: slideBg 30s linear infinite; }
+
+        /* V3.6.8: 헤더 텍스트 외부 광선(Glow) 효과 클래스 추가 */
+        .text-glow-white {
+            text-shadow: 0 0 4px rgba(255, 255, 255, 1), 0 0 8px rgba(255, 255, 255, 0.9), 0 0 12px rgba(255, 255, 255, 0.7);
+        }
     </style>
 </head>
 <body class="text-slate-800 relative pb-16">
@@ -686,6 +690,7 @@
         }
         window.changeMasterMonth = (v) => { masterDate.setMonth(masterDate.getMonth() + v); renderMasterCalendar(); };
 
+        // V3.6.8: 헤더 텍스트 렌더링 시 text-glow-white 주입 및 명도 대비 최적화 (text-slate-900 등)
         async function renderRoom() {
             const s = allSessions.find(x => x.id === currentSessionId); if (!s) return goLobby();
             const isGM = s.creator_id === userState.id, mbs = membersMap[s.id] || [], isJ = mbs.some(m => m.user_id === userState.id);
@@ -694,7 +699,7 @@
             const isUrl = s.location_detail && (s.location_detail.startsWith('http://') || s.location_detail.startsWith('https://'));
             const roomLocH = s.location_detail ? `<div class="bg-white/60 px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-white shadow-sm text-[10px] md:text-xs font-bold text-slate-700 mb-6 flex items-center gap-1.5 md:gap-2 max-w-full"><span class="text-sm md:text-base">${s.location_type === 'online' ? '🔗' : '📍'}</span> <span class="truncate">${isUrl ? `<a href="${escapeHTML(s.location_detail)}" target="_blank" class="text-indigo-600 hover:underline hover:text-indigo-800 transition-colors">${escapeHTML(s.location_detail)}</a>` : escapeHTML(s.location_detail)}</span></div>` : '<div class="mb-6"></div>';
 
-            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-800 drop-shadow-sm">${s.title} <span class="text-sm text-indigo-500">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-bold text-slate-500 mb-4">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-600 font-batang mb-4 leading-relaxed whitespace-pre-wrap">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
+            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
             toggle('gm-control-panel', isGM);
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button type="button" onclick="removeConfirmedSchedule(${idx})" class="hover-base text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
@@ -705,11 +710,9 @@
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="text-red-400 hover:text-red-600 text-base font-black px-2 hover-base hover:-translate-y-0.5">×</button></div>`).join('');
         }
 
-        // ✅ V3.6.7: Smart Auto-Flip 로직 적용 및 고도(Height) 최적화로 직관성 보완
         window.showTooltip = (el, title, raw) => { 
             const tt = document.getElementById('global-tooltip'); 
             
-            // 첫 렌더링(크기 계산을 위해 opacity-0 상태 유지)
             tt.classList.remove('hidden'); 
             tt.innerHTML = `<div class="relative z-10"><div class="font-black text-indigo-600 mb-2 border-b border-indigo-50 pb-1 text-center bg-white line-clamp-2">${title}</div><div class="bg-white line-clamp-4 leading-relaxed">${raw}</div></div>`; 
             
@@ -717,23 +720,19 @@
             const ttW = tt.offsetWidth;
             const ttH = tt.offsetHeight;
             
-            // 1. X축 브레이크(Clamp): 모바일 화면 벗어남 방어
             let leftPos = r.left + (r.width/2) - (ttW/2);
             const padding = 10;
             if (leftPos < padding) leftPos = padding;
             if (leftPos + ttW > window.innerWidth - padding) leftPos = window.innerWidth - ttW - padding;
             
-            // 2. Y축 스마트 플립(Auto-Flip): 화면 아래 여유 공간 스캔
             let topPos;
             const spaceBelow = window.innerHeight - r.bottom;
             
             if (spaceBelow > ttH + 20) {
-                // 기본 세팅: 카드 바로 아래로 출력 (꼬리는 위를 향함)
-                topPos = r.bottom - 4; // 카드 안쪽으로 4px 용접(Overlap)
+                topPos = r.bottom - 4; 
                 tt.innerHTML += `<div class="absolute -top-[6px] w-3.5 h-3.5 bg-white border-t-2 border-l-2 border-indigo-100 z-0" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`;
             } else {
-                // 방어 모드: 공간이 부족하면 카드 위쪽으로 뒤집어 출력 (꼬리는 아래를 향함)
-                topPos = r.top - ttH + 4; // 카드 안쪽으로 4px 용접(Overlap)
+                topPos = r.top - ttH + 4; 
                 tt.innerHTML += `<div class="absolute -bottom-[6px] w-3.5 h-3.5 bg-white border-b-2 border-r-2 border-indigo-100 z-0" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`;
             }
             
@@ -745,7 +744,6 @@
 
         window.hideTooltip = () => { const tt = document.getElementById('global-tooltip'); tt.classList.remove('opacity-100'); tt.classList.add('hidden'); };
         
-        // 터치 및 스크롤 시 툴팁을 즉시 폐기하여 뷰포트 고정에 따른 잔상(Ghost) 차단
         document.addEventListener('touchstart', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); }, {passive: true});
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
         window.addEventListener('scroll', hideTooltip, {passive: true});
