@@ -44,9 +44,11 @@
 
         .text-glow-white { text-shadow: 0 0 4px rgba(255, 255, 255, 1), 0 0 8px rgba(255, 255, 255, 0.9), 0 0 12px rgba(255, 255, 255, 0.7); }
         
-        /* V3.7.3: 타임라인 상세 시간 텍스트 짙은 청보라색 아웃라인 적용 */
+        /* V3.7.4: 타임라인 상세 시간 텍스트 짙은 청보라색 및 흰색 아우라(Glow) 교정 */
         .timeline-time-text {
-            text-shadow: -1px -1px 0 #16015C, 1px -1px 0 #16015C, -1px 1px 0 #16015C, 1px 1px 0 #16015C !important;
+            color: #16015C !important;
+            text-shadow: 0 0 3px rgba(255, 255, 255, 1), 0 0 5px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8) !important;
+            font-weight: 900 !important;
         }
     </style>
 </head>
@@ -121,7 +123,7 @@
                     <h3 class="text-lg md:text-xl font-black mb-1">📅 내 일정 등록</h3>
                     <div class="flex flex-col gap-2 mb-4 md:mb-6 bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-inner">
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">날짜 선택</label>
-                        <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-50 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
+                        <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
                         
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간</label>
                         <div class="flex gap-2 items-center mb-1">
@@ -853,7 +855,7 @@
             document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
         }
 
-        // V3.7.3: 타임라인 상세 시간 텍스트 렌더링에 timeline-time-text 아웃라인 클래스 주입
+        // V3.7.4: 텍스트 색상을 짙은 청보라색으로 지정 및 흰색 아우라 효과 클래스(timeline-time-text) 주입
         window.openTimeline = (dateStr) => { 
             hideTooltip(); 
             const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); 
