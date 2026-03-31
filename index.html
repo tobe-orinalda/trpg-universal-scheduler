@@ -74,9 +74,9 @@
 
             <div id="auth-ui" class="flex-shrink-0 flex items-center">
                 <button type="button" id="btn-login" class="bg-white text-indigo-700 px-3 md:px-6 py-1.5 md:py-2 rounded-xl md:rounded-2xl font-bold hover-base btn-indigo-hover text-xs md:text-base hidden">구글 로그인</button>
-                <div id="user-profile" class="hidden flex items-center gap-2 md:gap-3 bg-indigo-800/60 p-1 md:p-1.5 pr-4 md:pr-5 rounded-full border border-indigo-400/40 cursor-pointer hover-base btn-indigo-hover" onclick="handleProfileClick()" title="프로필/마이페이지 열기/닫기">
-                    <div id="header-avatar-container"></div>
-                    <span id="display-name" class="text-xs md:text-sm font-black text-white truncate max-w-[60px] md:max-w-none">동기화...</span>
+                <div id="user-profile" class="hidden flex items-center gap-2 md:gap-3 bg-indigo-800/60 p-1 md:p-1.5 pr-4 md:pr-5 rounded-full border border-indigo-400/40 shadow-sm">
+                    <div id="header-avatar-container" onclick="openAvatarModal()" class="cursor-pointer hover:scale-110 transition-transform" title="프로필 스튜디오 열기"></div>
+                    <span id="display-name" onclick="toggleMypage()" class="cursor-pointer hover:text-indigo-200 transition-colors text-xs md:text-sm font-black text-white truncate max-w-[60px] md:max-w-none" title="마이페이지 열기/닫기">동기화...</span>
                 </div>
             </div>
         </div>
@@ -158,7 +158,7 @@
                                 <button type="button" onclick="toggleMyDay(0)" id="my-day-0" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
                             </div>
                             
-                            <button type="button" onclick="loadBaseTemplate()" class="w-full mt-3 hover-base bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl py-2.5 text-[10px] font-black shadow-sm">💡 내 기본 템플릿 불러오기</button>
+                            <button type="button" onclick="openTemplateModal()" class="w-full mt-3 hover-base bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl py-2.5 text-[10px] font-black shadow-sm">💡 내 기본 템플릿 불러오기</button>
                         </div>
 
                         <button type="button" onclick="addMyAvail()" class="w-full bg-indigo-600 text-white py-3.5 mt-2 rounded-xl font-black shadow-md hover-base btn-indigo-hover text-sm tracking-wide">일정 등록하기</button>
@@ -187,31 +187,38 @@
             
             <section class="bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200 mb-8 md:mb-12">
                 <div class="flex justify-between items-center mb-4 md:mb-6">
-                    <h3 class="text-lg md:text-2xl font-black">🗓️ 내 기본 스케줄 세팅</h3>
-                    <button type="button" onclick="saveMypageBaseTemplate()" class="bg-indigo-600 text-white px-4 md:px-6 py-2 rounded-xl font-bold shadow-md hover-base btn-indigo-hover text-xs md:text-sm">저장하기</button>
+                    <h3 class="text-lg md:text-2xl font-black">🗓️ 내 기본 스케줄 템플릿 (최대 10개)</h3>
+                    <button type="button" onclick="saveMypageBaseTemplate()" class="bg-indigo-600 text-white px-4 md:px-6 py-2 rounded-xl font-bold shadow-md hover-base btn-indigo-hover text-xs md:text-sm">전체 저장하기</button>
                 </div>
-                <p class="text-xs text-slate-500 mb-4 font-bold">자주 사용하는 시간대를 저장해두면 각 세션 방에서 한 번에 불러올 수 있습니다.</p>
-                <div class="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-100">
-                    <div class="w-full md:w-auto">
-                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">해당 요일만 선택</label>
-                        <div class="flex gap-1.5 md:gap-2">
-                            <button type="button" onclick="toggleMypageDay(1)" id="mypage-day-1" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">월</button>
-                            <button type="button" onclick="toggleMypageDay(2)" id="mypage-day-2" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">화</button>
-                            <button type="button" onclick="toggleMypageDay(3)" id="mypage-day-3" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">수</button>
-                            <button type="button" onclick="toggleMypageDay(4)" id="mypage-day-4" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">목</button>
-                            <button type="button" onclick="toggleMypageDay(5)" id="mypage-day-5" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">금</button>
-                            <button type="button" onclick="toggleMypageDay(6)" id="mypage-day-6" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">토</button>
-                            <button type="button" onclick="toggleMypageDay(0)" id="mypage-day-0" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">일</button>
+                <p class="text-xs text-slate-500 mb-4 font-bold">각 세션 방에서 한 번에 일괄 등록(복사/붙여넣기) 할 수 있는 파트타임 루틴을 만들어보세요.</p>
+                
+                <div id="mypage-template-list" class="space-y-3 mb-6"></div>
+
+                <div class="bg-slate-50 p-4 md:p-6 rounded-2xl border-2 border-slate-200 border-dashed">
+                    <h4 class="text-xs font-black text-slate-600 mb-3">+ 새 스케줄 템플릿 추가</h4>
+                    <div class="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center">
+                        <div class="w-full md:w-auto">
+                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">해당 요일만 선택</label>
+                            <div class="flex gap-1.5 md:gap-2">
+                                <button type="button" onclick="toggleMypageDay(1)" id="mypage-day-1" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">월</button>
+                                <button type="button" onclick="toggleMypageDay(2)" id="mypage-day-2" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">화</button>
+                                <button type="button" onclick="toggleMypageDay(3)" id="mypage-day-3" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">수</button>
+                                <button type="button" onclick="toggleMypageDay(4)" id="mypage-day-4" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">목</button>
+                                <button type="button" onclick="toggleMypageDay(5)" id="mypage-day-5" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">금</button>
+                                <button type="button" onclick="toggleMypageDay(6)" id="mypage-day-6" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">토</button>
+                                <button type="button" onclick="toggleMypageDay(0)" id="mypage-day-0" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">일</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="hidden md:block w-px h-12 bg-slate-200 mx-2"></div>
-                    <div class="w-full md:w-auto flex-1">
-                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">가능한 시간 (5분 단위)</label>
-                        <div class="flex gap-2 items-center">
-                            <input type="time" id="mypage-start-time" value="19:00" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
-                            <span class="text-slate-400 font-bold">~</span>
-                            <input type="time" id="mypage-end-time" value="23:55" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                        <div class="hidden md:block w-px h-12 bg-slate-200 mx-2"></div>
+                        <div class="w-full md:w-auto flex-1">
+                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">가능한 시간 (5분 단위)</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="time" id="mypage-start-time" value="19:00" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                                <span class="text-slate-400 font-bold">~</span>
+                                <input type="time" id="mypage-end-time" value="23:55" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            </div>
                         </div>
+                        <button type="button" onclick="addMypageTemplate()" class="w-full md:w-auto bg-slate-800 text-white font-bold text-xs px-5 py-3 rounded-xl hover-base hover:bg-black mt-4 md:mt-0 flex-shrink-0">추가</button>
                     </div>
                 </div>
             </section>
@@ -298,6 +305,19 @@
                 </div>
             </div>
         </div>
+
+        <div id="modal-select-template" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[120] flex items-center justify-center p-4">
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-md relative text-center">
+                <h3 class="text-xl font-black mb-2 text-slate-800">💡 내 템플릿 불러오기</h3>
+                <p class="text-[10px] text-slate-500 mb-4 font-bold leading-relaxed">적용할 템플릿을 선택하여 <b>입력창을 채우거나</b>,<br>아래 버튼을 눌러 지정된 날짜 기간에 <b>한 번에 일괄 등록</b>하세요!</p>
+                <div id="template-select-list" class="mb-4 max-h-[250px] overflow-y-auto space-y-2 custom-scrollbar text-left pr-2"></div>
+                <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
+                    <button type="button" onclick="applyAllTemplatesBulk()" class="w-full py-3.5 bg-indigo-600 text-white font-black rounded-xl hover-base shadow-md flex items-center justify-center gap-2">🚀 설정된 기간 내에 모두 일괄 등록하기</button>
+                    <button type="button" onclick="toggle('modal-select-template', false)" class="w-full py-2.5 bg-slate-100 text-slate-500 font-bold rounded-xl hover-base hover:bg-slate-200">닫기</button>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <script>
@@ -306,7 +326,10 @@
         let userState = null, currentSpace = null;
         let locType = 'online', allSessions = [], allMembers = [], currentSessionId = null, masterDate = new Date(), roomAvailsCache = [];
         let selectedWeekdays = [];
-        let mypageSelectedDays = []; // V3.9.2: 마이페이지 템플릿용 배열
+        
+        let mypageTemplates = []; // V3.9.4: 마이페이지 전역 템플릿 배열 (최대 10개)
+        let mypageSelectedDays = []; 
+        
         let isAdvancedSchedule = false;
         let isInitialLogin = true; 
         
@@ -526,16 +549,14 @@
             navigator.clipboard.writeText(currentSpace.space_code).then(() => alert("입장 코드가 복사되었습니다! ✨ 지인들에게 공유해 주세요."));
         };
 
-        window.handleProfileClick = () => {
-            if(currentSpace && currentSpace.space_type === 'small') {
-                openAvatarModal(); 
+        // V3.9.4: 마이페이지 전용 토글 라우팅 (방을 나가지 않고 닉네임 클릭만으로 왕복)
+        window.toggleMypage = () => {
+            if (!userState) return toggle('modal-login-prompt', true);
+            const isMypageOpen = !document.getElementById('view-mypage').classList.contains('hidden');
+            if (isMypageOpen) {
+                switchView(activeViewBeforeMypage); 
             } else {
-                const isMypageOpen = !document.getElementById('view-mypage').classList.contains('hidden');
-                if (isMypageOpen) {
-                    switchView(activeViewBeforeMypage); 
-                } else {
-                    goMypage(); 
-                }
+                goMypage(); 
             }
         };
 
@@ -575,7 +596,7 @@
             await renderRoom(); 
         };
 
-        // V3.9.2: 마이페이지 진입 시 DB 템플릿 불러오기
+        // V3.9.4: 마이페이지 접속 시 최대 10개 배열 템플릿 로딩
         window.goMypage = async () => { 
             if (!userState) return toggle('modal-login-prompt', true); 
             currentSessionId = null; 
@@ -583,19 +604,17 @@
             renderMypageGrids(); 
             
             const { data } = await client.from('users').select('base_template').eq('id', userState.id).single();
-            const tpl = data?.base_template || { days: [], start: '19:00', end: '23:55' };
-            document.getElementById('mypage-start-time').value = tpl.start;
-            document.getElementById('mypage-end-time').value = tpl.end;
-            mypageSelectedDays = tpl.days || [];
+            let tplData = data?.base_template;
             
-            for(let i=0; i<=6; i++) {
-                const b = document.getElementById(`mypage-day-${i}`);
-                if(mypageSelectedDays.includes(i)) {
-                    b.className = (i === 0) ? "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-indigo-100 text-indigo-600 transition-colors";
-                } else {
-                    b.className = "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors";
-                }
+            if (Array.isArray(tplData)) {
+                mypageTemplates = tplData;
+            } else if (tplData && tplData.days) {
+                mypageTemplates = [tplData]; // 과거 1개짜리 객체 템플릿 하위호환
+            } else {
+                mypageTemplates = [];
             }
+            
+            renderMypageTemplates();
         };
         
         window.enterSpaceDirectly = (code) => { document.getElementById('in-join-code').value = code; joinSpace(); };
@@ -615,8 +634,9 @@
             goRoom(sId);
         };
 
-        // V3.9.2: 스튜디오에서 템플릿 구역을 적출했으므로 순수 프로필만 로딩
+        // 아바타 클릭 시 스튜디오 오픈
         window.openAvatarModal = () => { 
+            if (!userState) return toggle('modal-login-prompt', true);
             studioTarget = "user"; 
             document.getElementById('studio-title').innerText = "🎨 프로필 스튜디오"; 
             document.getElementById('btn-studio-revert').innerText = "구글 사진으로"; 
@@ -654,7 +674,7 @@
             document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
         };
         
-        // V3.9.2: 마이페이지 템플릿 요일 토글 로직
+        // V3.9.4: 마이페이지 다중 템플릿 관리 엔진
         window.toggleMypageDay = (day) => {
             const b = document.getElementById(`mypage-day-${day}`);
             if (mypageSelectedDays.includes(day)) {
@@ -666,18 +686,55 @@
             }
         };
 
-        // V3.9.2: 마이페이지 전역 템플릿 DB 저장
-        window.saveMypageBaseTemplate = async () => {
-            const tS = document.getElementById('mypage-start-time').value;
-            const tE = document.getElementById('mypage-end-time').value;
-            const tpl = { start: tS, end: tE, days: mypageSelectedDays };
+        window.addMypageTemplate = () => {
+            if (mypageTemplates.length >= 10) return alert("템플릿은 최대 10개까지만 저장할 수 있습니다.");
+            if (mypageSelectedDays.length === 0) return alert("요일을 하나 이상 선택해 주세요.");
             
-            const { error } = await client.from('users').update({ base_template: tpl }).eq('id', userState.id);
-            if (error) return alert("기본 스케줄 저장 오류: " + error.message);
-            alert("나만의 기본 스케줄 템플릿이 성공적으로 저장되었습니다! 💾\n각 세션 방에서 즉시 불러올 수 있습니다.");
+            const sT = document.getElementById('mypage-start-time').value;
+            const eT = document.getElementById('mypage-end-time').value;
+            if (sT >= eT) return alert("종료 시간은 시작 시간보다 이후여야 합니다.");
+            
+            mypageTemplates.push({ days: [...mypageSelectedDays], start: sT, end: eT });
+            
+            // 폼 리셋
+            mypageSelectedDays = [];
+            for(let i=0; i<=6; i++) {
+                document.getElementById(`mypage-day-${i}`).className = "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors";
+            }
+            renderMypageTemplates();
         };
 
-        // V3.9.2: 스튜디오 세이브는 이제 프로필 꾸미기 정보만 담당함
+        window.removeMypageTemplate = (idx) => {
+            mypageTemplates.splice(idx, 1);
+            renderMypageTemplates();
+        };
+
+        window.renderMypageTemplates = () => {
+            const listEl = document.getElementById('mypage-template-list');
+            if (mypageTemplates.length === 0) {
+                listEl.innerHTML = `<div class="text-center text-slate-400 font-bold py-4 bg-white rounded-xl border border-slate-100 text-xs">아직 등록된 템플릿이 없습니다.</div>`;
+                return;
+            }
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            
+            listEl.innerHTML = mypageTemplates.map((t, idx) => {
+                const daysStr = t.days.slice().sort().map(d => dayNames[d]).join(', ');
+                return `<div class="flex justify-between items-center bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 shadow-sm">
+                            <div class="flex flex-col">
+                                <span class="font-black text-indigo-800 text-xs md:text-sm mb-0.5">${daysStr}요일</span>
+                                <span class="text-[10px] md:text-xs font-bold text-indigo-500 font-mono">${t.start} ~ ${t.end}</span>
+                            </div>
+                            <button type="button" onclick="removeMypageTemplate(${idx})" class="text-slate-300 hover:text-red-500 font-black text-lg px-2 hover-base transition-colors">×</button>
+                        </div>`;
+            }).join('');
+        };
+
+        window.saveMypageBaseTemplate = async () => {
+            const { error } = await client.from('users').update({ base_template: mypageTemplates }).eq('id', userState.id);
+            if (error) return alert("기본 스케줄 저장 오류: " + error.message);
+            alert("나만의 기본 스케줄 템플릿이 성공적으로 저장되었습니다! 💾\n각 세션 방에서 한 번에 묶어서 일괄 등록할 수 있습니다.");
+        };
+
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
             if(studioTarget === "user") { 
@@ -951,14 +1008,41 @@
             navigator.clipboard.writeText(text).then(() => alert('호출 메시지가 복사되었습니다! 🔔 디스코드 등에 붙여넣기 하세요.'));
         };
 
-        // V3.9.2: DB에서 기본 템플릿 불러오기
-        window.loadBaseTemplate = async () => {
+        // V3.9.4: 방 내부에서 템플릿 모달 열기
+        window.openTemplateModal = async () => {
             const { data, error } = await client.from('users').select('base_template').eq('id', userState.id).single();
-            if (error || !data || !data.base_template || data.base_template.days.length === 0) {
+            let tplData = data?.base_template;
+            
+            let fetchedTemplates = [];
+            if (Array.isArray(tplData)) fetchedTemplates = tplData;
+            else if (tplData && tplData.days) fetchedTemplates = [tplData];
+            
+            if (fetchedTemplates.length === 0) {
                 return alert('마이페이지(내 프로필) 하단에서 먼저 [내 기본 스케줄 템플릿]을 세팅하고 저장해 주세요.');
             }
             
-            const t = data.base_template;
+            const listEl = document.getElementById('template-select-list');
+            const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+            
+            listEl.innerHTML = fetchedTemplates.map((t, idx) => {
+                const daysStr = t.days.slice().sort().map(d => dayNames[d]).join(', ');
+                return `<button type="button" onclick="applySingleTemplate(${idx})" class="w-full text-left bg-indigo-50/50 hover:bg-indigo-100 p-3 rounded-xl border border-indigo-100 shadow-sm hover-base transition-colors flex justify-between items-center">
+                            <div class="flex flex-col">
+                                <span class="font-black text-indigo-800 text-xs md:text-sm mb-0.5">${daysStr}요일</span>
+                                <span class="text-[10px] md:text-xs font-bold text-indigo-500 font-mono">${t.start} ~ ${t.end}</span>
+                            </div>
+                            <span class="text-[9px] font-black bg-white px-2 py-1 rounded-lg text-indigo-500 border border-indigo-100">입력창 채우기</span>
+                        </button>`;
+            }).join('');
+            
+            // 일괄 등록을 위해 전역 변수 업데이트
+            window.currentAvailableTemplates = fetchedTemplates;
+            toggle('modal-select-template', true);
+        };
+
+        // V3.9.4: 단일 템플릿 정보를 입력창에만 채우기 (복사)
+        window.applySingleTemplate = (idx) => {
+            const t = window.currentAvailableTemplates[idx];
             document.getElementById('in-my-start').value = t.start;
             document.getElementById('in-my-end').value = t.end;
             selectedWeekdays = t.days || [];
@@ -972,7 +1056,90 @@
                 }
             }
             if(!isAdvancedSchedule && selectedWeekdays.length > 0) toggleAdvancedSchedule();
-            alert('전역 기본 템플릿을 성공적으로 불러왔습니다! 💡 [종료 날짜]를 지정하고 등록해 주세요.');
+            toggle('modal-select-template', false);
+        };
+
+        // V3.9.4: 설정된 기간에 10개의 템플릿을 한방에 복사/붙여넣기 (Bulk Insert)
+        window.applyAllTemplatesBulk = async () => {
+            const sD = document.getElementById('in-my-start-date').value;
+            const eD = document.getElementById('in-my-end-date').value;
+            const fED = eD || sD; 
+            
+            if(!sD) return alert("먼저 뒷면(방)의 '날짜 선택'에서 시작 날짜를 지정해 주세요.");
+            
+            const sParts = sD.split('-'); const eParts = fED.split('-');
+            let sDt = new Date(sParts[0], sParts[1]-1, sParts[2]);
+            let eDt = new Date(eParts[0], eParts[1]-1, eParts[2]);
+
+            if (eDt < sDt) return alert("기간 설정 오류: 종료 날짜가 시작 날짜보다 빠를 수 없습니다."); 
+            
+            let allTargetSlots = []; // 생성될 슬롯들 {date, start, end}
+            let limit = 365; 
+            
+            // 기간 내 모든 날짜를 순회하며 템플릿 매칭
+            for (let d = new Date(sDt); d <= eDt; d.setDate(d.getDate() + 1)) { 
+                if (limit-- < 0) break; 
+                const dayOfWeek = d.getDay();
+                const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                
+                window.currentAvailableTemplates.forEach(t => {
+                    if (t.days.includes(dayOfWeek)) {
+                        allTargetSlots.push({ date: dateStr, start: t.start, end: t.end });
+                    }
+                });
+            } 
+            
+            if (allTargetSlots.length === 0) return alert("선택된 기간 내에 템플릿 요일과 일치하는 날짜가 없습니다."); 
+            
+            try {
+                // 기존 데이터 스캔 (스마트 충돌 방지)
+                const uniqueDates = [...new Set(allTargetSlots.map(x => x.date))];
+                const { data: existing } = await client.from('session_availability').select('*').eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', uniqueDates);
+                
+                const existingMap = {};
+                if (existing) existing.forEach(e => { 
+                    if(!existingMap[e.available_date]) existingMap[e.available_date] = [];
+                    existingMap[e.available_date].push(e); 
+                });
+                
+                const ps = []; const toDeleteIds = []; let limitWarning = false;
+                
+                for (const slot of allTargetSlots) {
+                    const daySlots = existingMap[slot.date] || [];
+                    let hasOverlap = false;
+                    let overlappingIds = [];
+
+                    for (const exSlot of daySlots) {
+                        if (slot.start < exSlot.end_time && slot.end > exSlot.start_time) {
+                            hasOverlap = true;
+                            overlappingIds.push(exSlot.id);
+                        }
+                    }
+
+                    if (hasOverlap) {
+                        toDeleteIds.push(...overlappingIds);
+                        ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: slot.date, start_time: slot.start, end_time: slot.end, comment: "템플릿 일괄 적용" });
+                    } else {
+                        if (daySlots.length >= 3) limitWarning = true;
+                        else ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: slot.date, start_time: slot.start, end_time: slot.end, comment: "템플릿 일괄 적용" });
+                    }
+                }
+                
+                if (limitWarning) alert(`⚠️ 일부 날짜는 하루 최대 3개의 일정이 꽉 차서 무시되었습니다.`);
+                
+                if (toDeleteIds.length > 0) await client.from('session_availability').delete().in('id', toDeleteIds);
+                if (ps.length > 0) {
+                    const { error } = await client.from('session_availability').insert(ps);
+                    if (error) alert("일정 등록 중 DB 오류가 발생했습니다: " + error.message); 
+                }
+                
+                toggle('modal-select-template', false);
+                alert("🚀 기간 내 모든 템플릿 일정이 성공적으로 복사/일괄 적용되었습니다!");
+                await renderRoom();
+                
+            } catch (err) {
+                alert("시스템 접속 오류가 발생했습니다: " + err.message);
+            }
         };
 
         window.openImportModal = () => {
