@@ -121,14 +121,17 @@
                 <div class="w-full lg:w-1/3 bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200 flex flex-col">
                     <h3 class="text-lg md:text-xl font-black mb-1">📅 내 일정 등록</h3>
                     <div class="flex flex-col gap-2 mb-4 md:mb-6 bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-inner">
+                        
+                        <button type="button" onclick="openImportModal()" class="w-full mb-2 bg-indigo-50 border border-indigo-100 text-indigo-700 py-2 rounded-xl text-[10px] font-bold shadow-sm hover-base hover:bg-indigo-100 flex items-center justify-center gap-2">📥 다른 세션의 내 일정 불러오기</button>
+
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">날짜 선택</label>
                         <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
                         
-                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간</label>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간 (5분 단위)</label>
                         <div class="flex gap-2 items-center mb-1">
-                            <input type="time" id="in-my-start" value="19:00" step="300" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            <input type="time" id="in-my-start" value="19:00" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
                             <span class="text-slate-400 font-bold">~</span>
-                            <input type="time" id="in-my-end" value="23:55" step="300" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            <input type="time" id="in-my-end" value="23:55" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
                         </div>
 
                         <button type="button" onclick="toggle('my-comment-panel', true); this.classList.add('hidden')" id="btn-show-comment" class="text-[9px] font-bold text-indigo-500 text-left hover:underline w-fit py-0.5">+ 💬 코멘트 남기기 (선택)</button>
@@ -154,13 +157,24 @@
                                 <button type="button" onclick="toggleMyDay(6)" id="my-day-6" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">토</button>
                                 <button type="button" onclick="toggleMyDay(0)" id="my-day-0" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
                             </div>
+                            
+                            <button type="button" onclick="loadBaseTemplate()" class="w-full mt-3 hover-base bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl py-2.5 text-[10px] font-black shadow-sm">💡 내 기본 템플릿 불러오기</button>
                         </div>
 
                         <button type="button" onclick="addMyAvail()" class="w-full bg-indigo-600 text-white py-3.5 mt-2 rounded-xl font-black shadow-md hover-base btn-indigo-hover text-sm tracking-wide">일정 등록하기</button>
                     </div>
 
                     <div id="my-avail-list" class="space-y-2 mb-4 overflow-y-auto flex-grow max-h-[150px] pr-2 custom-scrollbar"></div>
-                    <div id="gm-control-panel" class="hidden mt-auto pt-6 border-t border-slate-100"><h4 class="text-xs md:text-sm font-black text-indigo-600 mb-2">👑 방장 권한 (일정 확정)</h4><div class="flex flex-col gap-2 mb-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-50 shadow-inner"><div class="flex gap-2"><input type="date" id="in-confirm-date" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><input type="time" id="in-confirm-time" value="19:00" step="300" class="cursor-pointer w-20 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"></div><div class="flex gap-2 items-center"><select id="in-confirm-repeat" onchange="toggleRepeatCount()" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><option value="none">반복 없음</option><option value="weekly">매주 반복</option></select><input type="number" id="in-confirm-count" min="2" max="24" value="4" class="hidden w-12 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold text-center outline-none hover:border-indigo-300 transition-colors"></div><button type="button" onclick="addConfirmedSchedule()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-sm hover-base btn-indigo-hover text-[10px]">확정하기</button></div><div id="confirmed-schedules-list" class="space-y-1 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar"></div></div>
+                    <div id="gm-control-panel" class="hidden mt-auto pt-6 border-t border-slate-100">
+                        <h4 class="text-xs md:text-sm font-black text-indigo-600 mb-2">👑 방장 권한 (일정 확정)</h4>
+                        <div class="flex flex-col gap-2 mb-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-50 shadow-inner">
+                            <div class="flex gap-2"><input type="date" id="in-confirm-date" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><input type="time" id="in-confirm-time" value="19:00" step="300" class="cursor-pointer w-20 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"></div>
+                            <div class="flex gap-2 items-center"><select id="in-confirm-repeat" onchange="toggleRepeatCount()" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><option value="none">반복 없음</option><option value="weekly">매주 반복</option></select><input type="number" id="in-confirm-count" min="2" max="24" value="4" class="hidden w-12 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold text-center outline-none hover:border-indigo-300 transition-colors"></div>
+                            <button type="button" onclick="addConfirmedSchedule()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-sm hover-base btn-indigo-hover text-[10px]">확정하기</button>
+                        </div>
+                        <button type="button" onclick="copyNudgeText()" class="w-full bg-slate-100 text-slate-600 border border-slate-200 py-2 rounded-lg font-bold shadow-sm hover-base hover:bg-slate-200 text-[10px] mb-3">🔔 미입력자 호출 텍스트 복사</button>
+                        <div id="confirmed-schedules-list" class="space-y-1 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -200,7 +214,7 @@
         <div id="modal-create" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-3 md:p-4"><div class="bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative overflow-y-auto max-h-[90vh] custom-scrollbar"><h3 id="modal-title" class="text-xl md:text-2xl font-black mb-6 md:mb-8">🎲 세션 설정</h3><input type="hidden" id="edit-session-id"><div class="space-y-4 mb-8 text-left text-sm"><div class="relative w-full h-32 rounded-2xl border-2 border-slate-100 overflow-hidden group cursor-pointer hover-base hover:shadow-lg mb-4" onclick="openBannerModal()"><div id="session-banner-preview" class="w-full h-full flex items-center justify-center text-5xl"></div><div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="text-white font-black text-xs">🎨 배너 디자인 변경</span></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-4"><input type="text" id="in-title" placeholder="세션 제목" class="w-full p-3 md:p-4 bg-slate-50 border-2 hover:border-indigo-200 focus:border-indigo-400 transition-colors rounded-xl outline-none font-bold"><div class="relative w-full flex gap-2"><select id="in-rule-primary" onchange="handleRuleSelection('primary')" class="cursor-pointer w-full p-3 md:p-4 bg-slate-50 border-2 hover:border-indigo-200 focus:border-indigo-400 transition-colors rounded-xl outline-none text-xs md:text-sm font-bold"><option value="" disabled selected>사용 룰 선택</option><option value="크툴루의 부름(CoC)">크툴루의 부름(CoC)</option><option value="인세인(inSANe)">인세인(inSANe)</option><option value="마기카로기아(마기로기)">마기카로기아(마기로기)</option><option value="더블크로스(Double Cross)">더블크로스(Double Cross)</option><option value="던전월드">던전월드</option><option value="피아스코">피아스코</option><option disabled>───</option><option value="show_all">📜 전체 목록...</option><option value="custom">✏️ 직접 입력...</option></select><select id="in-rule-all" onchange="handleRuleSelection('all')" class="cursor-pointer hidden w-full p-3 md:p-4 border-2 border-indigo-200 bg-indigo-50 rounded-xl text-xs md:text-sm font-bold"></select><input type="text" id="in-rule-custom" placeholder="룰 이름" class="hidden absolute inset-0 w-full h-full p-3 bg-white border-2 border-indigo-500 rounded-xl text-xs md:text-sm font-bold"><button type="button" id="btn-rule-cancel" onclick="resetRuleUI()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black p-2 bg-white rounded-full z-10 hover-base hover:text-red-500 hover:shadow-sm">×</button></div></div><div class="bg-slate-50 p-3 md:p-4 rounded-xl border-2 border-slate-100"><label class="text-[9px] font-bold text-slate-400 mb-2 block uppercase tracking-widest">세션 키워드</label><div id="modal-tags-container" class="flex flex-wrap gap-1.5"></div></div><textarea id="in-desc" placeholder="시나리오 개요 및 공지사항" class="custom-scrollbar w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-batang outline-none focus:border-indigo-400 hover:border-indigo-200 transition-colors"></textarea><div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center"><div class="relative w-full"><select id="in-cap" onchange="toggleCustomCap()" class="cursor-pointer w-full p-3 md:p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-400 hover:border-indigo-200 transition-colors"><option value="1">1명</option><option value="2">2명</option><option value="3">3명</option><option value="4" selected>4명</option><option value="5">5명</option><option value="6">6명</option><option value="7">7명</option><option value="custom">직접 입력...</option></select><input type="number" id="in-cap-custom" placeholder="인원수" class="hidden absolute inset-0 w-full h-full p-4 bg-white border-2 border-indigo-500 rounded-xl text-center font-bold outline-none"><button type="button" id="btn-cap-cancel" onclick="cancelCustomCap()" class="hidden hover-base hover:text-red-500 hover:shadow-sm absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 font-black p-2 bg-white rounded-full">×</button></div><div class="flex gap-2"><button type="button" id="mode-on" class="hover-base shadow-sm flex-1 py-3 rounded-xl border-2 text-xs md:text-sm font-bold transition-colors">온라인</button><button type="button" id="mode-off" class="hover-base shadow-sm flex-1 py-3 rounded-xl border-2 text-xs md:text-sm font-bold transition-colors">오프라인</button></div></div><input type="text" id="in-loc" placeholder="링크 또는 오프라인 장소" class="w-full p-3 md:p-4 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-400 hover:border-indigo-200 transition-colors"></div><div class="flex gap-3"><button type="button" id="btn-create-delete" class="hidden px-4 md:px-5 py-3 md:py-4 bg-red-50 text-red-500 font-bold rounded-xl hover-base hover:bg-red-100 hover:shadow-md text-lg md:text-xl" title="삭제">🗑️</button><button type="button" id="btn-create-close" class="flex-1 py-3 md:py-4 bg-slate-100 text-slate-500 font-bold rounded-xl hover-base hover:bg-slate-200 text-sm md:text-base whitespace-nowrap">취소</button><button type="button" id="btn-create-submit" class="flex-1 py-3 md:py-4 bg-indigo-600 text-white font-bold rounded-xl shadow-lg hover-base btn-indigo-hover text-sm md:text-base whitespace-nowrap">저장하기</button></div></div></div>
 
         <div id="modal-avatar" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[110] flex items-center justify-center p-4">
-            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative text-center">
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative text-center overflow-y-auto max-h-[90vh] custom-scrollbar">
                 <h3 id="studio-title" class="text-xl font-black mb-4 text-slate-800">🎨 스튜디오</h3>
                 <div class="mb-6 flex justify-center">
                     <div id="avatar-preview" class="avatar-pop w-24 h-24 rounded-full border-4 border-slate-100 shadow-inner flex items-center justify-center text-4xl"></div>
@@ -209,6 +223,7 @@
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1 block">사용할 닉네임</label>
                     <input type="text" id="studio-nick-input" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors text-sm text-center">
                 </div>
+                
                 <div class="mb-6 text-left">
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">테마 컬러 (프리셋)</label>
                     <div class="flex flex-wrap gap-2 justify-center mb-3" id="gradient-palette"></div>
@@ -229,12 +244,46 @@
                         <input type="text" id="avatar-custom-emoji" maxlength="2" oninput="applyCustomEmoji()" class="w-full text-center p-1 bg-white border border-slate-200 rounded text-lg outline-none hover:border-indigo-300 focus:border-indigo-500 transition-colors" placeholder="🎲 이모지 직접입력">
                     </div>
                 </div>
+
+                <div id="studio-template-section" class="mb-6 text-left border-t border-slate-100 pt-5 mt-5 hidden">
+                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">💡 내 기본 스케줄 (전역 템플릿)</label>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <div class="flex gap-1 justify-between mb-3">
+                            <button type="button" onclick="toggleStudioDay(1)" id="studio-day-1" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">월</button>
+                            <button type="button" onclick="toggleStudioDay(2)" id="studio-day-2" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">화</button>
+                            <button type="button" onclick="toggleStudioDay(3)" id="studio-day-3" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">수</button>
+                            <button type="button" onclick="toggleStudioDay(4)" id="studio-day-4" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">목</button>
+                            <button type="button" onclick="toggleStudioDay(5)" id="studio-day-5" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">금</button>
+                            <button type="button" onclick="toggleStudioDay(6)" id="studio-day-6" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">토</button>
+                            <button type="button" onclick="toggleStudioDay(0)" id="studio-day-0" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <input type="time" id="studio-start-time" value="19:00" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            <span class="text-slate-400 font-bold">~</span>
+                            <input type="time" id="studio-end-time" value="23:55" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                        </div>
+                        <p class="text-[8px] text-slate-400 mt-2 font-bold text-center">저장해두면 각 세션 방에서 한 번에 불러올 수 있습니다.</p>
+                    </div>
+                </div>
+
                 <div class="flex flex-col gap-2">
                     <button type="button" id="btn-studio-save" class="w-full py-3 bg-indigo-600 text-white font-black rounded-xl hover-base btn-indigo-hover shadow-sm">저장하기</button>
                     <div class="flex gap-2">
                         <button type="button" id="btn-studio-revert" class="flex-1 py-2 bg-white border-2 border-slate-200 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-50 whitespace-nowrap">기본으로</button>
                         <button type="button" onclick="closeAvatarModal()" class="flex-1 py-2 bg-slate-100 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-200 whitespace-nowrap">취소</button>
                     </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="modal-import-avail" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[120] flex items-center justify-center p-4">
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-sm relative text-center">
+                <h3 class="text-xl font-black mb-2 text-slate-800">📥 일정 불러오기</h3>
+                <p class="text-xs text-slate-500 mb-6 font-bold leading-relaxed">내가 참여 중인 다른 세션에 적어두었던<br>내 일정을 그대로 가져옵니다.</p>
+                <select id="import-session-select" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold outline-none focus:border-indigo-500 mb-6 text-sm text-slate-700"></select>
+                <div class="flex gap-2">
+                    <button type="button" onclick="executeImportAvail()" class="flex-1 py-3 bg-indigo-600 text-white font-black rounded-xl hover-base btn-indigo-hover shadow-sm">가져오기</button>
+                    <button type="button" onclick="toggle('modal-import-avail', false)" class="flex-1 py-3 bg-slate-100 text-slate-500 font-bold rounded-xl hover-base hover:bg-slate-200">취소</button>
                 </div>
             </div>
         </div>
@@ -246,6 +295,7 @@
         let userState = null, currentSpace = null;
         let locType = 'online', allSessions = [], allMembers = [], currentSessionId = null, masterDate = new Date(), roomAvailsCache = [];
         let selectedWeekdays = [];
+        let studioSelectedDays = []; // V3.9.1: 프로필 스튜디오 템플릿용 배열
         let isAdvancedSchedule = false;
         let isInitialLogin = true; 
         
@@ -264,6 +314,15 @@
         const toggle = (id, show) => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', !show); };
         const escapeHTML = (str) => str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         const timeToPercent = (tS) => { const [h, m] = tS.split(':').map(Number); return ((h + (m / 60)) / 24) * 100; };
+        
+        window.snapTo5Mins = (input) => {
+            if (!input.value) return;
+            let [h, m] = input.value.split(':').map(Number);
+            m = Math.round(m / 5) * 5;
+            if (m >= 60) { m = 0; h += 1; }
+            if (h >= 24) { h = 23; m = 55; }
+            input.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        };
 
         function renderCustomBoxHTML(url, classNames, isBanner = false, isLargeRoomBanner = false) { 
             if (!url) return `<div class="${classNames} bg-slate-200"></div>`; 
@@ -523,13 +582,15 @@
             goRoom(sId);
         };
 
+        // V3.9.1: 스튜디오 모달 오픈 시 DB에서 템플릿 불러오기
         window.openAvatarModal = () => { 
             studioTarget = "user"; 
             document.getElementById('studio-title').innerText = "🎨 프로필 스튜디오"; 
             document.getElementById('btn-studio-revert').innerText = "구글 사진으로"; 
             toggle('studio-nick-section', true);
+            toggle('studio-template-section', true);
             
-            client.from('users').select('avatar_url, nickname').eq('id', userState.id).single().then(({data}) => { 
+            client.from('users').select('avatar_url, nickname, base_template').eq('id', userState.id).single().then(({data}) => { 
                 const n = data?.nickname || userState.user_metadata?.full_name || userState.user_metadata?.name || "";
                 document.getElementById('studio-nick-input').value = n;
                 
@@ -543,11 +604,26 @@
                     document.getElementById('avatar-preview').innerHTML = `<img src="${url}" class="w-full h-full rounded-full border-4 border-slate-100 object-cover shadow-inner avatar-pop">`;
                     rerollEmojis();
                 }
+                
+                // 템플릿 UI 세팅
+                const tpl = data?.base_template || { days: [], start: '19:00', end: '23:55' };
+                document.getElementById('studio-start-time').value = tpl.start;
+                document.getElementById('studio-end-time').value = tpl.end;
+                studioSelectedDays = tpl.days || [];
+                for(let i=0; i<=6; i++) {
+                    const b = document.getElementById(`studio-day-${i}`);
+                    if(studioSelectedDays.includes(i)) {
+                        b.className = (i === 0) ? "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors";
+                    } else {
+                        b.className = "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors";
+                    }
+                }
+                
                 toggle('modal-avatar', true); 
             }); 
         };
 
-        window.openBannerModal = () => { studioTarget = "session"; document.getElementById('studio-title').innerText = "🎲 세션 배너 스튜디오"; document.getElementById('btn-studio-revert').innerText = "기본 색상으로"; toggle('studio-nick-section', false); parseToStudio(tempSessionBanner); toggle('modal-avatar', true); };
+        window.openBannerModal = () => { studioTarget = "session"; document.getElementById('studio-title').innerText = "🎲 세션 배너 스튜디오"; document.getElementById('btn-studio-revert').innerText = "기본 색상으로"; toggle('studio-nick-section', false); toggle('studio-template-section', false); parseToStudio(tempSessionBanner); toggle('modal-avatar', true); };
         function parseToStudio(url) { if(url.startsWith('custom|')) { const p = url.split('|'); tempGrad = p[1]; tempEmoji = p[2]; } else { tempGrad = GRADIENT_PRESETS[5].value; tempEmoji = "🎲"; } updateAvatarPreview(); rerollEmojis(); }
         window.closeAvatarModal = () => { toggle('modal-avatar', false); };
         window.rerollEmojis = () => { const shuffled = [...EMOJI_POOL].sort(() => 0.5 - Math.random()).slice(0, 10); document.getElementById('emoji-gacha-container').innerHTML = shuffled.map(e => `<button type="button" onclick="setAvatarEmoji('${e}')" class="hover-base w-full aspect-square text-2xl bg-slate-50 hover:bg-indigo-50 border border-slate-100 rounded-xl flex items-center justify-center">${e}</button>`).join(''); document.getElementById('avatar-custom-emoji').value = ""; };
@@ -561,12 +637,27 @@
             document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
         };
         
+        // V3.9.1: 스튜디오 요일 토글
+        window.toggleStudioDay = (day) => {
+            const b = document.getElementById(`studio-day-${day}`);
+            if (studioSelectedDays.includes(day)) {
+                studioSelectedDays = studioSelectedDays.filter(d => d !== day);
+                b.className = "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors";
+            } else {
+                studioSelectedDays.push(day);
+                b.className = (day === 0) ? "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors";
+            }
+        };
+
+        // V3.9.1: 프로필과 함께 기본 템플릿 DB에 저장
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
             if(studioTarget === "user") { 
                 const n = document.getElementById('studio-nick-input').value.trim() || document.getElementById('display-name').innerText;
-                const { error } = await client.from('users').upsert({ id: userState.id, avatar_url: newUrl, nickname: n }); 
-                if (error) return alert("프로필 저장 실패: " + error.message);
+                const tpl = { start: document.getElementById('studio-start-time').value, end: document.getElementById('studio-end-time').value, days: studioSelectedDays };
+                
+                const { error } = await client.from('users').upsert({ id: userState.id, avatar_url: newUrl, nickname: n, base_template: tpl }); 
+                if (error) return alert("프로필/템플릿 저장 실패: " + error.message + "\n\n⚠️ Supabase에서 ALTER TABLE 명령어로 base_template 컬럼을 생성했는지 확인하세요.");
                 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
@@ -575,6 +666,7 @@
                 document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-full h-full rounded-full object-cover');
                 
                 if (!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids(); 
+                alert("프로필과 기본 템플릿이 서버에 저장되었습니다! 💾");
             } else { 
                 tempSessionBanner = newUrl; 
                 updateBannerPreview(); 
@@ -586,7 +678,9 @@
             if(studioTarget === "user") { 
                 const newUrl = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || ''; 
                 const n = document.getElementById('studio-nick-input').value.trim() || document.getElementById('display-name').innerText;
-                const { error } = await client.from('users').upsert({ id: userState.id, avatar_url: newUrl, nickname: n }); 
+                const tpl = { days: [], start: '19:00', end: '23:55' };
+                
+                const { error } = await client.from('users').upsert({ id: userState.id, avatar_url: newUrl, nickname: n, base_template: tpl }); 
                 if (error) return alert("프로필 복구 실패: " + error.message);
 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
@@ -653,6 +747,18 @@
         window.toggleLobbyFilterTag = (tag) => { if (filterTags.includes(tag)) filterTags = filterTags.filter(t => t !== tag); else filterTags.push(tag); renderFilterTagsUI(); renderLobbyGrid(); };
         window.clearFilterTags = () => { filterTags = []; renderFilterTagsUI(); renderLobbyGrid(); };
 
+        const sortByGravity = (a, b) => {
+            const getW = (s) => {
+                if (!s.confirmed_schedules || s.confirmed_schedules.length === 0) return 10000;
+                const d = new Date(s.confirmed_schedules[0].date); d.setHours(0,0,0,0);
+                const t = new Date(); t.setHours(0,0,0,0);
+                const diff = Math.ceil((d - t) / 86400000);
+                if (diff < 0) return 20000 - diff; 
+                return diff; 
+            };
+            return getW(a) - getW(b);
+        };
+
         function generateSessionCardHTML(s, mbs = null) { 
             if(!mbs) mbs = membersMap[s.id] || [];
             const isFull = mbs.length >= s.capacity, ts = s.tags || []; 
@@ -691,7 +797,7 @@
             const grid = document.getElementById('session-grid'); if(!grid) return; 
             if(allSessions.length === 0) return grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">현재 생성된 세션이 없습니다. <br>새로운 모험을 열어보세요!</div>`; 
             
-            const filtered = allSessions.filter(s => { 
+            let filtered = allSessions.filter(s => { 
                 if (filterKeyword) { if (!s.title.toLowerCase().includes(filterKeyword) && !(s.rule || '').toLowerCase().includes(filterKeyword)) return false; } 
                 if (filterLoc !== 'all' && s.location_type !== filterLoc) return false; 
                 if (filterTags.length > 0 && !filterTags.every(t => (s.tags || []).includes(t))) return false; 
@@ -700,6 +806,8 @@
                 if (filterStatus && (isFull || isC)) return false; 
                 return true; 
             }); 
+            filtered.sort(sortByGravity); 
+            
             if (filtered.length === 0) grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">조건에 맞는 세션이 없습니다.</div>`; 
             else grid.innerHTML = filtered.map(s => generateSessionCardHTML(s)).join(''); 
         }
@@ -721,8 +829,11 @@
                 tempMap[m.session_id].push(m);
             });
 
-            const gms = combined.filter(s => s.creator_id === userState.id); 
-            const pls = combined.filter(s => s.creator_id !== userState.id && allMems.some(m => m.session_id === s.id && m.user_id === userState.id)); 
+            let gms = combined.filter(s => s.creator_id === userState.id); 
+            let pls = combined.filter(s => s.creator_id !== userState.id && allMems.some(m => m.session_id === s.id && m.user_id === userState.id)); 
+            
+            gms.sort(sortByGravity); pls.sort(sortByGravity); 
+            
             gmGrid.innerHTML = gms.length === 0 ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">진행 중인 마스터링이 없습니다.</div>` : gms.map(s => generateSessionCardHTML(s, tempMap[s.id])).join(''); 
             plGrid.innerHTML = pls.length === 0 ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">참여 중인 세션이 없습니다.</div>` : pls.map(s => generateSessionCardHTML(s, tempMap[s.id])).join(''); 
         }
@@ -796,6 +907,108 @@
             navigator.clipboard.writeText(txt).then(() => alert('현황이 복사되었습니다! 📋 디스코드 등에 붙여넣기 하세요.'));
         };
 
+        window.copyNudgeText = () => {
+            const s = allSessions.find(x => x.id === currentSessionId); if(!s) return;
+            const mbs = membersMap[s.id] || [];
+            const dM = {}; roomAvailsCache.forEach(a => { dM[a.user_id] = true; });
+            const missingNames = mbs.filter(m => !dM[m.user_id]).map(m => m.users?.nickname || '알 수 없음');
+            
+            let text = `🎲 [${s.title}] 세션 조율 안내\n\n`;
+            if (missingNames.length > 0) {
+                text += `아직 일정을 등록하지 않은 모험가가 ${missingNames.length}명 있습니다.\n(@${missingNames.join(', @')})\n\n`;
+                text += `신속한 진행을 위해 조율표에 가능한 시간을 등록해 주세요! 🙏\n`;
+            } else {
+                text += `모든 모험가가 일정을 등록했습니다! 방장님은 조율표를 확인해 주세요. ✨\n`;
+            }
+            text += `🔗 조율 공간 입장 코드: [ ${currentSpace.space_code} ]`;
+            
+            navigator.clipboard.writeText(text).then(() => alert('호출 메시지가 복사되었습니다! 🔔 디스코드 등에 붙여넣기 하세요.'));
+        };
+
+        // V3.9.1: DB에서 기본 템플릿 불러오기 (Local Storage 폐기)
+        window.loadBaseTemplate = async () => {
+            const { data, error } = await client.from('users').select('base_template').eq('id', userState.id).single();
+            if (error || !data || !data.base_template || data.base_template.days.length === 0) {
+                return alert('마이페이지(내 프로필)의 아바타를 클릭하여 먼저 [기본 스케줄 템플릿]을 설정해 주세요.');
+            }
+            
+            const t = data.base_template;
+            document.getElementById('in-my-start').value = t.start;
+            document.getElementById('in-my-end').value = t.end;
+            selectedWeekdays = t.days || [];
+            
+            for(let i=0; i<=6; i++) {
+                const b = document.getElementById(`my-day-${i}`);
+                if(selectedWeekdays.includes(i)) {
+                    b.className = (i === 0) ? "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors";
+                } else {
+                    b.className = "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors";
+                }
+            }
+            if(!isAdvancedSchedule && selectedWeekdays.length > 0) toggleAdvancedSchedule();
+            alert('전역 기본 템플릿을 성공적으로 불러왔습니다! 💡 [종료 날짜]를 지정하고 등록해 주세요.');
+        };
+
+        window.openImportModal = () => {
+            const sel = document.getElementById('import-session-select');
+            sel.innerHTML = '<option value="">세션을 선택하세요</option>';
+            const mySessIds = allMembers.filter(m => m.user_id === userState.id).map(m => m.session_id);
+            const mySessions = allSessions.filter(s => (s.creator_id === userState.id || mySessIds.includes(s.id)) && s.id !== currentSessionId);
+            
+            if (mySessions.length === 0) return alert("일정을 가져올 다른 세션이 없습니다.");
+            
+            mySessions.forEach(s => { sel.innerHTML += `<option value="${s.id}">${s.title}</option>`; });
+            toggle('modal-import-avail', true);
+        };
+        
+        window.executeImportAvail = async () => {
+            const tId = document.getElementById('import-session-select').value;
+            if(!tId) return alert("세션을 선택해주세요.");
+            toggle('modal-import-avail', false);
+            
+            const { data, error } = await client.from('session_availability').select('*').eq('session_id', tId).eq('user_id', userState.id);
+            if (error) return alert("데이터를 불러오지 못했습니다.");
+            if (!data || data.length === 0) return alert("해당 세션에 등록된 내 일정이 없습니다.");
+            
+            const ps = [];
+            data.forEach(a => { ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: a.available_date, start_time: a.start_time, end_time: a.end_time, comment: a.comment }); });
+            
+            try {
+                const targetDates = [...new Set(ps.map(x => x.available_date))];
+                const { data: existing } = await client.from('session_availability').select('*').eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
+                
+                const existingMap = {};
+                if (existing) existing.forEach(e => { 
+                    if(!existingMap[e.available_date]) existingMap[e.available_date] = [];
+                    existingMap[e.available_date].push(e); 
+                });
+                
+                const finalPs = [];
+                for (const p of ps) {
+                    const daySlots = existingMap[p.available_date] || [];
+                    let hasOverlap = false;
+                    for (const slot of daySlots) {
+                        if (p.start_time < slot.end_time && p.end_time > slot.start_time) { hasOverlap = true; break; }
+                    }
+                    if (!hasOverlap && daySlots.length < 3) {
+                        finalPs.push(p);
+                        daySlots.push(p);
+                    }
+                }
+                
+                if (finalPs.length === 0) return alert("모두 기존 일정과 겹치거나 슬롯이 꽉 차서 복사할 일정이 없습니다.");
+                
+                const { error: insErr } = await client.from('session_availability').insert(finalPs);
+                if (insErr) alert("일부 데이터 저장 오류: " + insErr.message);
+                else {
+                    alert(`${finalPs.length}개의 일정을 성공적으로 복사해왔습니다! 📥`);
+                    await renderRoom();
+                }
+            } catch (err) {
+                alert("시스템 오류: " + err.message);
+            }
+        };
+
         window.showTooltip = (el, title, raw) => { 
             const tt = document.getElementById('global-tooltip'); 
             tt.classList.remove('hidden'); 
@@ -856,7 +1069,6 @@
             document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
         }
 
-        // V3.8.0: 유저별 일정 슬롯 그룹화 및 오버플로우 허용
         window.openTimeline = (dateStr) => { 
             hideTooltip(); 
             const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); 
@@ -904,7 +1116,6 @@
             }
         };
 
-        // V3.8.0: 스마트 충돌 감지 프롬프트 (Conflict Resolution) 주입
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
