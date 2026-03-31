@@ -43,6 +43,11 @@
         .bg-pattern-anim { animation: slideBg 30s linear infinite; }
 
         .text-glow-white { text-shadow: 0 0 4px rgba(255, 255, 255, 1), 0 0 8px rgba(255, 255, 255, 0.9), 0 0 12px rgba(255, 255, 255, 0.7); }
+        
+        /* V3.7.3: 타임라인 상세 시간 텍스트 짙은 청보라색 아웃라인 적용 */
+        .timeline-time-text {
+            text-shadow: -1px -1px 0 #16015C, 1px -1px 0 #16015C, -1px 1px 0 #16015C, 1px 1px 0 #16015C !important;
+        }
     </style>
 </head>
 <body class="text-slate-800 relative pb-16">
@@ -116,7 +121,7 @@
                     <h3 class="text-lg md:text-xl font-black mb-1">📅 내 일정 등록</h3>
                     <div class="flex flex-col gap-2 mb-4 md:mb-6 bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-inner">
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">날짜 선택</label>
-                        <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
+                        <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-50 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
                         
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간</label>
                         <div class="flex gap-2 items-center mb-1">
@@ -280,14 +285,12 @@
         
         function generateCode() { const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let res = ''; for(let i=0; i<6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length)); return res; }
 
-        // V3.7.2: DOMContentLoaded 시 능동적 세션 스캔 (Active Session Probing)
         document.addEventListener("DOMContentLoaded", () => {
             const rAll = document.getElementById('in-rule-all'); if(rAll) rAll.innerHTML = `<option value="" disabled selected>전체 룰 목록</option>` + ALL_RULES_DB.map(r => `<option value="${r}">${r}</option>`).join('') + `<option value="custom">✏️ 직접 입력...</option>`;
             renderFilterTagsUI();
             const gPal = document.getElementById('gradient-palette'); if(gPal) gPal.innerHTML = GRADIENT_PRESETS.map((g, i) => `<button type="button" onclick="setAvatarGradient('${g.value}')" class="hover-base w-8 h-8 rounded-full shadow-sm border-2 border-white hover:scale-110 transition-transform" style="background: ${g.value}" title="${g.name}"></button>`).join('');
             updateLocUI();
 
-            // 초기화 딜레이(White Screen) 방지: 즉시 세션 확인
             client.auth.getSession().then(({ data: { session } }) => {
                 if (!session) {
                     userState = null;
@@ -358,7 +361,6 @@
         document.getElementById('btn-login').onclick = () => client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
         window.handleLogout = async () => { if(confirm("로그아웃 하시겠습니까?")) { await client.auth.signOut(); localStorage.clear(); location.reload(); } };
 
-        // V3.7.2: 방 생성/입장 시 인증 방어막(Guard) 적용
         window.createSpace = async () => {
             if (!userState) return toggle('modal-login-prompt', true);
             const sName = document.getElementById('in-space-name').value.trim(); const sType = document.querySelector('input[name="space_type"]:checked').value;
@@ -484,7 +486,6 @@
             const cIn = document.getElementById('in-my-comment'); if(cIn) cIn.value = '';
         };
 
-        // V3.7.2: 타이틀 클릭 시 인증 방어막(Soft Prompt Modal) 적용
         window.goHome = () => { 
             if (!userState) return toggle('modal-login-prompt', true);
             if (!currentSpace) switchView('view-hub'); 
@@ -763,7 +764,7 @@
                 actionBtns += `<a href="${calUrl}" target="_blank" class="hover-base bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-black text-blue-600 shadow-sm flex items-center gap-1.5">📅 G-캘린더</a>`;
             }
 
-            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-4">${actionBtns}</div><div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
+            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-4">${actionBtns}</div><div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
             toggle('gm-control-panel', isGM);
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button type="button" onclick="removeConfirmedSchedule(${idx})" class="hover-base text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
@@ -852,6 +853,7 @@
             document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
         }
 
+        // V3.7.3: 타임라인 상세 시간 텍스트 렌더링에 timeline-time-text 아웃라인 클래스 주입
         window.openTimeline = (dateStr) => { 
             hideTooltip(); 
             const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); 
@@ -862,7 +864,7 @@
             document.getElementById('timeline-bars').innerHTML = dayAvs.map(a => { 
                 const sP = timeToPercent(a.start_time), eP = timeToPercent(a.end_time), wP = Math.max(0, eP - sP); 
                 const cHtml = a.comment ? `<div class="text-[9px] text-slate-500 mt-1 pl-1.5 border-l-2 border-indigo-200 font-bold break-words w-full">${escapeHTML(a.comment)}</div>` : '';
-                return `<div class="flex flex-col mb-3"><div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users?.nickname || '알 수 없음'}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] font-mono font-black text-white opacity-0 group-hover:opacity-100 z-10 drop-shadow-md">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div><div class="pl-[4rem] md:pl-[4.5rem] pr-2">${cHtml}</div></div>`; 
+                return `<div class="flex flex-col mb-3"><div class="flex items-center group h-5 md:h-6"><div class="timeline-label">${a.users?.nickname || '알 수 없음'}</div><div class="flex-1 relative h-full bg-white border border-slate-200 rounded overflow-hidden shadow-sm"><div class="absolute top-0 h-full bg-indigo-400 rounded-sm group-hover:bg-indigo-500 transition-colors" style="left: ${sP}%; width: ${wP}%;"></div><div class="absolute inset-0 flex items-center justify-center text-[7px] md:text-[8px] opacity-0 group-hover:opacity-100 z-10 timeline-time-text transition-opacity">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</div></div></div><div class="pl-[4rem] md:pl-[4.5rem] pr-2">${cHtml}</div></div>`; 
             }).join(''); 
             
             toggle('timeline-panel', true); 
