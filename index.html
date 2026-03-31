@@ -959,7 +959,7 @@
             const isUrl = s.location_detail && (s.location_detail.startsWith('http://') || s.location_detail.startsWith('https://'));
             const roomLocH = s.location_detail ? `<div class="bg-white/60 px-3 md:px-4 py-1.5 md:py-2 rounded-xl border border-white shadow-sm text-[10px] md:text-xs font-bold text-slate-700 mb-4 flex items-center gap-1.5 md:gap-2 max-w-full"><span class="text-sm md:text-base">${s.location_type === 'online' ? '🔗' : '📍'}</span> <span class="truncate">${isUrl ? `<a href="${escapeHTML(s.location_detail)}" target="_blank" class="text-indigo-600 hover:underline hover:text-indigo-800 transition-colors">${escapeHTML(s.location_detail)}</a>` : escapeHTML(s.location_detail)}</span></div>` : '<div class="mb-4"></div>';
             
-            let actionBtns = `<button type="button" onclick="copyRoomStatus()" class="hover-base bg-white/80 border border-white px-3 py-1.5 rounded-lg text-[10px] font-bold text-slate-700 shadow-sm flex items-center gap-1.5 backdrop-blur-md">📋 현황 복사</button>`;
+            let actionBtnsHtml = '';
             if (s.confirmed_schedules && s.confirmed_schedules.length > 0) {
                 const cD = s.confirmed_schedules[0];
                 const dStr = cD.date.replace(/-/g, '');
@@ -967,10 +967,10 @@
                 let eH = parseInt(cD.time.split(':')[0]) + 4; if(eH >= 24) eH = 23;
                 const eStr = String(eH).padStart(2,'0') + cD.time.split(':')[1] + '00';
                 const calUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(s.title)}&dates=${dStr}T${tStr}/${dStr}T${eStr}&details=${encodeURIComponent(s.description || '')}`;
-                actionBtns += `<a href="${calUrl}" target="_blank" class="hover-base bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-black text-blue-600 shadow-sm flex items-center gap-1.5">📅 G-캘린더</a>`;
+                actionBtnsHtml = `<div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-4"><a href="${calUrl}" target="_blank" class="hover-base bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-black text-blue-600 shadow-sm flex items-center gap-1.5">📅 G-캘린더</a></div>`;
             }
 
-            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}<div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-4">${actionBtns}</div><div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
+            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}${actionBtnsHtml}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
             toggle('gm-control-panel', isGM);
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button type="button" onclick="removeConfirmedSchedule(${idx})" class="hover-base text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
@@ -980,24 +980,6 @@
             const mavs = roomAvailsCache.filter(a => a.user_id === userState.id).sort((a,b) => new Date(a.available_date) - new Date(b.available_date));
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="text-red-400 hover:text-red-600 text-base font-black px-2 hover-base hover:-translate-y-0.5">×</button></div>`).join('');
         }
-
-        window.copyRoomStatus = () => {
-            const s = allSessions.find(x => x.id === currentSessionId); if(!s) return;
-            let txt = `🎲 [${s.title}] 일정 조율 현황\n\n`;
-            const dM = {}; roomAvailsCache.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
-            const sDs = Object.keys(dM).sort();
-            if(sDs.length === 0) txt += "아직 등록된 일정이 없습니다.";
-            else {
-                sDs.forEach(date => {
-                    const dayAvs = dM[date];
-                    const names = Array.from(new Set(dayAvs.map(x => x.users?.nickname || '알 수 없음')));
-                    const dO = new Date(date); const m = String(dO.getMonth()+1).padStart(2,'0'); const d = String(dO.getDate()).padStart(2,'0'); const w = dO.toLocaleDateString('ko-KR', {weekday:'short'});
-                    txt += `✅ ${m}/${d} (${w}) - ${names.length}명 (${names.join(', ')})\n`;
-                    dayAvs.forEach(a => { if(a.comment) txt += `  💬 ${a.users?.nickname}: ${a.comment}\n`; });
-                });
-            }
-            navigator.clipboard.writeText(txt).then(() => alert('현황이 복사되었습니다! 📋 디스코드 등에 붙여넣기 하세요.'));
-        };
 
         window.copyNudgeText = () => {
             const s = allSessions.find(x => x.id === currentSessionId); if(!s) return;
@@ -1017,7 +999,6 @@
             navigator.clipboard.writeText(text).then(() => alert('호출 메시지가 복사되었습니다! 🔔 디스코드 등에 붙여넣기 하세요.'));
         };
 
-        // V3.9.6: 템플릿 모달 열기 및 초기화 (팝업 안에 날짜 선택기 추가)
         window.openTemplateModal = async () => {
             const { data, error } = await client.from('users').select('base_template').eq('id', userState.id).single();
             let tplData = data?.base_template;
@@ -1030,7 +1011,6 @@
                 return alert('마이페이지(내 프로필) 하단에서 먼저 [내 기본 스케줄 템플릿]을 세팅하고 저장해 주세요.');
             }
             
-            // 모달 안의 날짜 입력창에 배경의 날짜를 기본값으로 깔아줌
             const bgStart = document.getElementById('in-my-start-date').value;
             const bgEnd = document.getElementById('in-my-end-date').value;
             document.getElementById('modal-tpl-start-date').value = bgStart;
@@ -1057,7 +1037,6 @@
             toggle('modal-select-template', true);
         };
 
-        // 입력창만 채우기
         window.fillTemplateToForm = (idx) => {
             const t = window.currentAvailableTemplates[idx];
             document.getElementById('in-my-start').value = t.start;
@@ -1076,18 +1055,15 @@
             toggle('modal-select-template', false);
         };
 
-        // 단일 템플릿 일괄 등록
         window.applySingleTemplateBulk = async (idx) => {
             const t = window.currentAvailableTemplates[idx];
             await executeBulkInsert([t]);
         };
 
-        // 모든 템플릿 일괄 등록
         window.applyAllTemplatesBulk = async () => {
             await executeBulkInsert(window.currentAvailableTemplates);
         };
 
-        // V3.9.6: 모달 안의 날짜를 기준으로 일괄 등록 엔진 가동
         async function executeBulkInsert(templatesToApply) {
             const sD = document.getElementById('modal-tpl-start-date').value;
             const eD = document.getElementById('modal-tpl-end-date').value;
@@ -1115,7 +1091,7 @@
                 });
             } 
             
-            if (allTargetSlots.length === 0) return alert("설정한 기간 내에 템플릿의 요일과 일치하는 날짜가 없습니다."); 
+            if (allTargetSlots.length === 0) return alert("설정한 기간 내에 템플릿 요일과 일치하는 날짜가 없습니다."); 
             
             try {
                 const uniqueDates = [...new Set(allTargetSlots.map(x => x.date))];
