@@ -122,7 +122,7 @@
                     <h3 class="text-lg md:text-xl font-black mb-1">📅 내 일정 등록</h3>
                     <div class="flex flex-col gap-2 mb-4 md:mb-6 bg-slate-50 p-3 md:p-4 rounded-xl md:rounded-2xl border border-slate-100 shadow-inner">
                         
-                        <button type="button" onclick="openTemplateModal()" class="w-full mb-2 bg-indigo-50 border border-indigo-100 text-indigo-700 py-2 rounded-xl text-[10px] font-bold shadow-sm hover-base hover:bg-indigo-100 flex items-center justify-center gap-2">💡 내 기본 템플릿 불러오기</button>
+                        <button type="button" onclick="openTemplateModal()" class="w-full mb-4 bg-indigo-50 border border-indigo-100 text-indigo-700 py-2.5 rounded-xl text-[10px] font-black shadow-sm hover-base hover:bg-indigo-100 flex items-center justify-center gap-2">💡 내 템플릿 불러오기 (마법의 일괄 등록)</button>
 
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">날짜 선택</label>
                         <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
@@ -139,7 +139,7 @@
                             <input type="text" id="in-my-comment" placeholder="예: 이 날은 1시간 정도 늦을 수도 있어요!" maxlength="50" class="w-full bg-white border-2 border-slate-200 p-2 rounded-xl text-[10px] font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors mb-1">
                         </div>
 
-                        <button type="button" id="btn-toggle-advanced" onclick="toggleAdvancedSchedule()" class="text-[10px] text-indigo-500 font-bold text-right hover:underline hover-base py-1 mt-1">
+                        <button type="button" id="btn-toggle-advanced" onclick="toggleAdvancedSchedule()" class="text-[10px] text-indigo-500 font-bold text-right hover:underline hover-base py-1 mt-1 w-fit ml-auto block">
                             + 여러 날짜/반복 일정 추가
                         </button>
 
@@ -158,7 +158,7 @@
                                 <button type="button" onclick="toggleMyDay(0)" id="my-day-0" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
                             </div>
                             
-                            <button type="button" onclick="openImportModal()" class="w-full mt-3 hover-base bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-xl py-2.5 text-[10px] font-black shadow-sm flex items-center justify-center gap-2">📥 다른 세션의 내 일정 불러오기</button>
+                            <button type="button" onclick="openImportModal()" class="w-full mt-4 hover-base bg-slate-50 border border-slate-200 text-slate-600 rounded-xl py-2 text-[10px] font-bold shadow-sm flex items-center justify-center gap-2">📥 다른 세션의 내 일정 불러오기</button>
                         </div>
 
                         <button type="button" onclick="addMyAvail()" class="w-full bg-indigo-600 text-white py-3.5 mt-2 rounded-xl font-black shadow-md hover-base btn-indigo-hover text-sm tracking-wide">일정 등록하기</button>
@@ -309,10 +309,24 @@
         <div id="modal-select-template" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[120] flex items-center justify-center p-4">
             <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl w-full max-w-md relative text-center">
                 <h3 class="text-xl font-black mb-2 text-slate-800">💡 내 템플릿 불러오기</h3>
-                <p class="text-[10px] text-slate-500 mb-4 font-bold leading-relaxed">적용할 템플릿을 선택하여 <b>입력창을 채우거나</b>,<br>아래 버튼을 눌러 지정된 날짜 기간에 <b>한 번에 일괄 등록</b>하세요!</p>
+                <p class="text-[10px] text-slate-500 mb-4 font-bold leading-relaxed">템플릿을 적용할 기간을 설정하고 일괄 등록하세요.</p>
+                
+                <div class="flex gap-2 items-center mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200 text-left">
+                    <div class="flex-1">
+                        <label class="text-[9px] font-bold text-slate-400 block mb-1">시작 날짜</label>
+                        <input type="date" id="modal-tpl-start-date" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 cursor-pointer">
+                    </div>
+                    <span class="text-slate-400 font-bold mt-4">~</span>
+                    <div class="flex-1">
+                        <label class="text-[9px] font-bold text-slate-400 block mb-1">종료 날짜</label>
+                        <input type="date" id="modal-tpl-end-date" class="w-full bg-white border border-slate-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 cursor-pointer">
+                    </div>
+                </div>
+
                 <div id="template-select-list" class="mb-4 max-h-[250px] overflow-y-auto space-y-2 custom-scrollbar text-left pr-2"></div>
+                
                 <div class="flex flex-col gap-2 border-t border-slate-100 pt-4">
-                    <button type="button" onclick="applyAllTemplatesBulk()" class="w-full py-3.5 bg-indigo-600 text-white font-black rounded-xl hover-base shadow-md flex items-center justify-center gap-2">🚀 설정된 기간 내에 모두 일괄 등록하기</button>
+                    <button type="button" onclick="applyAllTemplatesBulk()" class="w-full py-3.5 bg-indigo-600 text-white font-black rounded-xl hover-base shadow-md flex items-center justify-center gap-2">🚀 기간 내 모든 템플릿 일괄 등록</button>
                     <button type="button" onclick="toggle('modal-select-template', false)" class="w-full py-2.5 bg-slate-100 text-slate-500 font-bold rounded-xl hover-base hover:bg-slate-200">닫기</button>
                 </div>
             </div>
@@ -1003,6 +1017,7 @@
             navigator.clipboard.writeText(text).then(() => alert('호출 메시지가 복사되었습니다! 🔔 디스코드 등에 붙여넣기 하세요.'));
         };
 
+        // V3.9.6: 템플릿 모달 열기 및 초기화 (팝업 안에 날짜 선택기 추가)
         window.openTemplateModal = async () => {
             const { data, error } = await client.from('users').select('base_template').eq('id', userState.id).single();
             let tplData = data?.base_template;
@@ -1015,25 +1030,35 @@
                 return alert('마이페이지(내 프로필) 하단에서 먼저 [내 기본 스케줄 템플릿]을 세팅하고 저장해 주세요.');
             }
             
+            // 모달 안의 날짜 입력창에 배경의 날짜를 기본값으로 깔아줌
+            const bgStart = document.getElementById('in-my-start-date').value;
+            const bgEnd = document.getElementById('in-my-end-date').value;
+            document.getElementById('modal-tpl-start-date').value = bgStart;
+            document.getElementById('modal-tpl-end-date').value = bgEnd || bgStart;
+            
             const listEl = document.getElementById('template-select-list');
             const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
             
             listEl.innerHTML = fetchedTemplates.map((t, idx) => {
                 const daysStr = t.days.slice().sort().map(d => dayNames[d]).join(', ');
-                return `<button type="button" onclick="applySingleTemplate(${idx})" class="w-full text-left bg-indigo-50/50 hover:bg-indigo-100 p-3 rounded-xl border border-indigo-100 shadow-sm hover-base transition-colors flex justify-between items-center">
+                return `<div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 shadow-sm flex justify-between items-center">
                             <div class="flex flex-col">
                                 <span class="font-black text-indigo-800 text-xs md:text-sm mb-0.5">${daysStr}요일</span>
                                 <span class="text-[10px] md:text-xs font-bold text-indigo-500 font-mono">${t.start} ~ ${t.end}</span>
                             </div>
-                            <span class="text-[9px] font-black bg-white px-2 py-1 rounded-lg text-indigo-500 border border-indigo-100">입력창 채우기</span>
-                        </button>`;
+                            <div class="flex flex-col gap-1.5 ml-2 shrink-0">
+                                <button type="button" onclick="applySingleTemplateBulk(${idx})" class="text-[9px] font-black bg-indigo-500 text-white px-2 py-1 rounded-md hover-base shadow-sm">이 템플릿만 등록</button>
+                                <button type="button" onclick="fillTemplateToForm(${idx})" class="text-[9px] font-black bg-white text-indigo-500 border border-indigo-100 px-2 py-1 rounded-md hover-base">입력창 채우기</button>
+                            </div>
+                        </div>`;
             }).join('');
             
             window.currentAvailableTemplates = fetchedTemplates;
             toggle('modal-select-template', true);
         };
 
-        window.applySingleTemplate = (idx) => {
+        // 입력창만 채우기
+        window.fillTemplateToForm = (idx) => {
             const t = window.currentAvailableTemplates[idx];
             document.getElementById('in-my-start').value = t.start;
             document.getElementById('in-my-end').value = t.end;
@@ -1051,14 +1076,25 @@
             toggle('modal-select-template', false);
         };
 
+        // 단일 템플릿 일괄 등록
+        window.applySingleTemplateBulk = async (idx) => {
+            const t = window.currentAvailableTemplates[idx];
+            await executeBulkInsert([t]);
+        };
+
+        // 모든 템플릿 일괄 등록
         window.applyAllTemplatesBulk = async () => {
-            const sD = document.getElementById('in-my-start-date').value;
-            const eD = document.getElementById('in-my-end-date').value;
-            const fED = eD || sD; 
+            await executeBulkInsert(window.currentAvailableTemplates);
+        };
+
+        // V3.9.6: 모달 안의 날짜를 기준으로 일괄 등록 엔진 가동
+        async function executeBulkInsert(templatesToApply) {
+            const sD = document.getElementById('modal-tpl-start-date').value;
+            const eD = document.getElementById('modal-tpl-end-date').value;
             
-            if(!sD) return alert("먼저 뒷면(방)의 '날짜 선택'에서 시작 날짜를 지정해 주세요.");
+            if(!sD || !eD) return alert("템플릿을 적용할 시작 날짜와 종료 날짜를 지정해 주세요.");
             
-            const sParts = sD.split('-'); const eParts = fED.split('-');
+            const sParts = sD.split('-'); const eParts = eD.split('-');
             let sDt = new Date(sParts[0], sParts[1]-1, sParts[2]);
             let eDt = new Date(eParts[0], eParts[1]-1, eParts[2]);
 
@@ -1072,14 +1108,14 @@
                 const dayOfWeek = d.getDay();
                 const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
                 
-                window.currentAvailableTemplates.forEach(t => {
+                templatesToApply.forEach(t => {
                     if (t.days.includes(dayOfWeek)) {
                         allTargetSlots.push({ date: dateStr, start: t.start, end: t.end });
                     }
                 });
             } 
             
-            if (allTargetSlots.length === 0) return alert("선택된 기간 내에 템플릿 요일과 일치하는 날짜가 없습니다."); 
+            if (allTargetSlots.length === 0) return alert("설정한 기간 내에 템플릿의 요일과 일치하는 날짜가 없습니다."); 
             
             try {
                 const uniqueDates = [...new Set(allTargetSlots.map(x => x.date))];
@@ -1123,13 +1159,13 @@
                 }
                 
                 toggle('modal-select-template', false);
-                alert("🚀 기간 내 모든 템플릿 일정이 성공적으로 복사/일괄 적용되었습니다!");
+                alert("🚀 지정한 기간 내의 템플릿 일정이 성공적으로 일괄 등록되었습니다!");
                 await renderRoom();
                 
             } catch (err) {
                 alert("시스템 접속 오류가 발생했습니다: " + err.message);
             }
-        };
+        }
 
         window.openImportModal = () => {
             const sel = document.getElementById('import-session-select');
@@ -1284,6 +1320,19 @@
 
         window.closeTimeline = () => { toggle('timeline-panel', false); };
         
+        window.toggleAdvancedSchedule = () => {
+            isAdvancedSchedule = !isAdvancedSchedule;
+            const pnl = document.getElementById('advanced-schedule-panel');
+            const btn = document.getElementById('btn-toggle-advanced');
+            if (isAdvancedSchedule) {
+                pnl.classList.remove('hidden');
+                btn.innerText = "- 고급 설정 닫기";
+            } else {
+                pnl.classList.add('hidden');
+                btn.innerText = "+ 여러 날짜/반복 일정 추가";
+            }
+        };
+
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
