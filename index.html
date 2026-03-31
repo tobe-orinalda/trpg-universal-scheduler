@@ -184,6 +184,38 @@
                 <div class="absolute inset-0 opacity-5 bg-[linear-gradient(135deg,#a18cd1_0%,#fbc2eb_100%)]"></div><div class="relative group cursor-pointer hover-base hover:scale-105 transition-transform" onclick="openAvatarModal()" title="프로필 사진 변경"><div id="mypage-avatar-container" class="avatar-pop w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-xl flex items-center justify-center text-4xl md:text-5xl"></div><div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="text-white text-xl">✏️</span></div></div>
                 <div class="flex-1 w-full text-center md:text-left relative z-10"><h2 class="text-2xl md:text-3xl font-black mb-2 text-slate-800">내 프로필</h2><p class="text-xs md:text-sm text-slate-500 mb-4">아바타를 클릭해 나만의 TRPG 프로필을 만드세요.</p><div class="flex flex-col sm:flex-row gap-3 max-w-lg mx-auto md:mx-0"><div class="flex flex-1 gap-2"><input type="text" id="mypage-nick-input" class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold outline-none focus:border-indigo-500 hover:border-indigo-200 transition-colors text-sm"><button type="button" onclick="saveMypageNickname()" class="px-5 bg-indigo-600 text-white font-bold rounded-xl shadow-sm hover-base btn-indigo-hover whitespace-nowrap flex-shrink-0">변경</button></div><button type="button" onclick="handleLogout()" class="px-5 py-3 bg-red-50 text-red-500 font-bold rounded-xl border border-red-100 hover-base hover:bg-red-100 hover:shadow-md transition-all text-sm whitespace-nowrap flex-shrink-0">로그아웃</button></div></div>
             </section>
+            
+            <section class="bg-white p-6 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] shadow-sm border border-slate-200 mb-8 md:mb-12">
+                <div class="flex justify-between items-center mb-4 md:mb-6">
+                    <h3 class="text-lg md:text-2xl font-black">🗓️ 내 기본 스케줄 세팅</h3>
+                    <button type="button" onclick="saveMypageBaseTemplate()" class="bg-indigo-600 text-white px-4 md:px-6 py-2 rounded-xl font-bold shadow-md hover-base btn-indigo-hover text-xs md:text-sm">저장하기</button>
+                </div>
+                <p class="text-xs text-slate-500 mb-4 font-bold">자주 사용하는 시간대를 저장해두면 각 세션 방에서 한 번에 불러올 수 있습니다.</p>
+                <div class="flex flex-col md:flex-row gap-4 md:gap-6 items-start md:items-center bg-slate-50 p-4 md:p-6 rounded-2xl border border-slate-100">
+                    <div class="w-full md:w-auto">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">해당 요일만 선택</label>
+                        <div class="flex gap-1.5 md:gap-2">
+                            <button type="button" onclick="toggleMypageDay(1)" id="mypage-day-1" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">월</button>
+                            <button type="button" onclick="toggleMypageDay(2)" id="mypage-day-2" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">화</button>
+                            <button type="button" onclick="toggleMypageDay(3)" id="mypage-day-3" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">수</button>
+                            <button type="button" onclick="toggleMypageDay(4)" id="mypage-day-4" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">목</button>
+                            <button type="button" onclick="toggleMypageDay(5)" id="mypage-day-5" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">금</button>
+                            <button type="button" onclick="toggleMypageDay(6)" id="mypage-day-6" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">토</button>
+                            <button type="button" onclick="toggleMypageDay(0)" id="mypage-day-0" class="hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors">일</button>
+                        </div>
+                    </div>
+                    <div class="hidden md:block w-px h-12 bg-slate-200 mx-2"></div>
+                    <div class="w-full md:w-auto flex-1">
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">가능한 시간 (5분 단위)</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="time" id="mypage-start-time" value="19:00" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            <span class="text-slate-400 font-bold">~</span>
+                            <input type="time" id="mypage-end-time" value="23:55" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2.5 md:p-3 rounded-xl text-xs md:text-sm font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section class="mb-8 md:mb-12"><h3 class="text-xl md:text-2xl font-black mb-4 md:mb-6 pl-2">🌌 내가 만든 공간 (스페이스)</h3><div id="mypage-spaces-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8"></div></section>
             <section class="mb-8 md:mb-12"><h3 class="text-xl md:text-2xl font-black mb-4 md:mb-6 pl-2">👑 마스터 세션 (전체)</h3><div id="mypage-gm-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8"></div></section>
             <section><h3 class="text-xl md:text-2xl font-black mb-4 md:mb-6 pl-2">🎲 플레이 세션 (전체)</h3><div id="mypage-pl-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8"></div></section>
@@ -245,28 +277,7 @@
                     </div>
                 </div>
 
-                <div id="studio-template-section" class="mb-6 text-left border-t border-slate-100 pt-5 mt-5 hidden">
-                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">💡 내 기본 스케줄 (전역 템플릿)</label>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <div class="flex gap-1 justify-between mb-3">
-                            <button type="button" onclick="toggleStudioDay(1)" id="studio-day-1" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">월</button>
-                            <button type="button" onclick="toggleStudioDay(2)" id="studio-day-2" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">화</button>
-                            <button type="button" onclick="toggleStudioDay(3)" id="studio-day-3" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">수</button>
-                            <button type="button" onclick="toggleStudioDay(4)" id="studio-day-4" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">목</button>
-                            <button type="button" onclick="toggleStudioDay(5)" id="studio-day-5" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">금</button>
-                            <button type="button" onclick="toggleStudioDay(6)" id="studio-day-6" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">토</button>
-                            <button type="button" onclick="toggleStudioDay(0)" id="studio-day-0" class="hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors">일</button>
-                        </div>
-                        <div class="flex gap-2 items-center">
-                            <input type="time" id="studio-start-time" value="19:00" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
-                            <span class="text-slate-400 font-bold">~</span>
-                            <input type="time" id="studio-end-time" value="23:55" step="300" onchange="snapTo5Mins(this)" class="flex-1 bg-white border border-slate-200 p-2 rounded-lg text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
-                        </div>
-                        <p class="text-[8px] text-slate-400 mt-2 font-bold text-center">저장해두면 각 세션 방에서 한 번에 불러올 수 있습니다.</p>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col gap-2 mt-4">
                     <button type="button" id="btn-studio-save" class="w-full py-3 bg-indigo-600 text-white font-black rounded-xl hover-base btn-indigo-hover shadow-sm">저장하기</button>
                     <div class="flex gap-2">
                         <button type="button" id="btn-studio-revert" class="flex-1 py-2 bg-white border-2 border-slate-200 text-slate-500 text-xs font-bold rounded-xl hover-base hover:bg-slate-50 whitespace-nowrap">기본으로</button>
@@ -295,7 +306,7 @@
         let userState = null, currentSpace = null;
         let locType = 'online', allSessions = [], allMembers = [], currentSessionId = null, masterDate = new Date(), roomAvailsCache = [];
         let selectedWeekdays = [];
-        let studioSelectedDays = []; // V3.9.1: 프로필 스튜디오 템플릿용 배열
+        let mypageSelectedDays = []; // V3.9.2: 마이페이지 템플릿용 배열
         let isAdvancedSchedule = false;
         let isInitialLogin = true; 
         
@@ -563,7 +574,29 @@
             switchView('view-room'); 
             await renderRoom(); 
         };
-        window.goMypage = () => { if (!userState) return toggle('modal-login-prompt', true); currentSessionId = null; switchView('view-mypage'); renderMypageGrids(); };
+
+        // V3.9.2: 마이페이지 진입 시 DB 템플릿 불러오기
+        window.goMypage = async () => { 
+            if (!userState) return toggle('modal-login-prompt', true); 
+            currentSessionId = null; 
+            switchView('view-mypage'); 
+            renderMypageGrids(); 
+            
+            const { data } = await client.from('users').select('base_template').eq('id', userState.id).single();
+            const tpl = data?.base_template || { days: [], start: '19:00', end: '23:55' };
+            document.getElementById('mypage-start-time').value = tpl.start;
+            document.getElementById('mypage-end-time').value = tpl.end;
+            mypageSelectedDays = tpl.days || [];
+            
+            for(let i=0; i<=6; i++) {
+                const b = document.getElementById(`mypage-day-${i}`);
+                if(mypageSelectedDays.includes(i)) {
+                    b.className = (i === 0) ? "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-indigo-100 text-indigo-600 transition-colors";
+                } else {
+                    b.className = "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors";
+                }
+            }
+        };
         
         window.enterSpaceDirectly = (code) => { document.getElementById('in-join-code').value = code; joinSpace(); };
         window.goRoomDirectly = async (sId, spaceCode) => {
@@ -582,15 +615,14 @@
             goRoom(sId);
         };
 
-        // V3.9.1: 스튜디오 모달 오픈 시 DB에서 템플릿 불러오기
+        // V3.9.2: 스튜디오에서 템플릿 구역을 적출했으므로 순수 프로필만 로딩
         window.openAvatarModal = () => { 
             studioTarget = "user"; 
             document.getElementById('studio-title').innerText = "🎨 프로필 스튜디오"; 
             document.getElementById('btn-studio-revert').innerText = "구글 사진으로"; 
             toggle('studio-nick-section', true);
-            toggle('studio-template-section', true);
             
-            client.from('users').select('avatar_url, nickname, base_template').eq('id', userState.id).single().then(({data}) => { 
+            client.from('users').select('avatar_url, nickname').eq('id', userState.id).single().then(({data}) => { 
                 const n = data?.nickname || userState.user_metadata?.full_name || userState.user_metadata?.name || "";
                 document.getElementById('studio-nick-input').value = n;
                 
@@ -604,26 +636,11 @@
                     document.getElementById('avatar-preview').innerHTML = `<img src="${url}" class="w-full h-full rounded-full border-4 border-slate-100 object-cover shadow-inner avatar-pop">`;
                     rerollEmojis();
                 }
-                
-                // 템플릿 UI 세팅
-                const tpl = data?.base_template || { days: [], start: '19:00', end: '23:55' };
-                document.getElementById('studio-start-time').value = tpl.start;
-                document.getElementById('studio-end-time').value = tpl.end;
-                studioSelectedDays = tpl.days || [];
-                for(let i=0; i<=6; i++) {
-                    const b = document.getElementById(`studio-day-${i}`);
-                    if(studioSelectedDays.includes(i)) {
-                        b.className = (i === 0) ? "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors";
-                    } else {
-                        b.className = "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors";
-                    }
-                }
-                
                 toggle('modal-avatar', true); 
             }); 
         };
 
-        window.openBannerModal = () => { studioTarget = "session"; document.getElementById('studio-title').innerText = "🎲 세션 배너 스튜디오"; document.getElementById('btn-studio-revert').innerText = "기본 색상으로"; toggle('studio-nick-section', false); toggle('studio-template-section', false); parseToStudio(tempSessionBanner); toggle('modal-avatar', true); };
+        window.openBannerModal = () => { studioTarget = "session"; document.getElementById('studio-title').innerText = "🎲 세션 배너 스튜디오"; document.getElementById('btn-studio-revert').innerText = "기본 색상으로"; toggle('studio-nick-section', false); parseToStudio(tempSessionBanner); toggle('modal-avatar', true); };
         function parseToStudio(url) { if(url.startsWith('custom|')) { const p = url.split('|'); tempGrad = p[1]; tempEmoji = p[2]; } else { tempGrad = GRADIENT_PRESETS[5].value; tempEmoji = "🎲"; } updateAvatarPreview(); rerollEmojis(); }
         window.closeAvatarModal = () => { toggle('modal-avatar', false); };
         window.rerollEmojis = () => { const shuffled = [...EMOJI_POOL].sort(() => 0.5 - Math.random()).slice(0, 10); document.getElementById('emoji-gacha-container').innerHTML = shuffled.map(e => `<button type="button" onclick="setAvatarEmoji('${e}')" class="hover-base w-full aspect-square text-2xl bg-slate-50 hover:bg-indigo-50 border border-slate-100 rounded-xl flex items-center justify-center">${e}</button>`).join(''); document.getElementById('avatar-custom-emoji').value = ""; };
@@ -637,27 +654,37 @@
             document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
         };
         
-        // V3.9.1: 스튜디오 요일 토글
-        window.toggleStudioDay = (day) => {
-            const b = document.getElementById(`studio-day-${day}`);
-            if (studioSelectedDays.includes(day)) {
-                studioSelectedDays = studioSelectedDays.filter(d => d !== day);
-                b.className = "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-slate-200 text-slate-400 transition-colors";
+        // V3.9.2: 마이페이지 템플릿 요일 토글 로직
+        window.toggleMypageDay = (day) => {
+            const b = document.getElementById(`mypage-day-${day}`);
+            if (mypageSelectedDays.includes(day)) {
+                mypageSelectedDays = mypageSelectedDays.filter(d => d !== day);
+                b.className = "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-slate-200 text-slate-400 transition-colors";
             } else {
-                studioSelectedDays.push(day);
-                b.className = (day === 0) ? "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-7 h-7 md:w-8 md:h-8 rounded-full font-black text-[9px] md:text-[10px] bg-indigo-100 text-indigo-600 transition-colors";
+                mypageSelectedDays.push(day);
+                b.className = (day === 0) ? "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-indigo-100 text-red-500 transition-colors" : "hover-base shadow-sm w-8 h-8 md:w-10 md:h-10 rounded-full font-black text-[10px] md:text-xs bg-indigo-100 text-indigo-600 transition-colors";
             }
         };
 
-        // V3.9.1: 프로필과 함께 기본 템플릿 DB에 저장
+        // V3.9.2: 마이페이지 전역 템플릿 DB 저장
+        window.saveMypageBaseTemplate = async () => {
+            const tS = document.getElementById('mypage-start-time').value;
+            const tE = document.getElementById('mypage-end-time').value;
+            const tpl = { start: tS, end: tE, days: mypageSelectedDays };
+            
+            const { error } = await client.from('users').update({ base_template: tpl }).eq('id', userState.id);
+            if (error) return alert("기본 스케줄 저장 오류: " + error.message);
+            alert("나만의 기본 스케줄 템플릿이 성공적으로 저장되었습니다! 💾\n각 세션 방에서 즉시 불러올 수 있습니다.");
+        };
+
+        // V3.9.2: 스튜디오 세이브는 이제 프로필 꾸미기 정보만 담당함
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
             if(studioTarget === "user") { 
                 const n = document.getElementById('studio-nick-input').value.trim() || document.getElementById('display-name').innerText;
-                const tpl = { start: document.getElementById('studio-start-time').value, end: document.getElementById('studio-end-time').value, days: studioSelectedDays };
                 
-                const { error } = await client.from('users').upsert({ id: userState.id, avatar_url: newUrl, nickname: n, base_template: tpl }); 
-                if (error) return alert("프로필/템플릿 저장 실패: " + error.message + "\n\n⚠️ Supabase에서 ALTER TABLE 명령어로 base_template 컬럼을 생성했는지 확인하세요.");
+                const { error } = await client.from('users').update({ avatar_url: newUrl, nickname: n }).eq('id', userState.id); 
+                if (error) return alert("프로필 저장 실패: " + error.message);
                 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
                 document.getElementById('display-name').innerText = n;
@@ -666,7 +693,7 @@
                 document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-full h-full rounded-full object-cover');
                 
                 if (!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids(); 
-                alert("프로필과 기본 템플릿이 서버에 저장되었습니다! 💾");
+                alert("프로필이 성공적으로 변경되었습니다! 🎨");
             } else { 
                 tempSessionBanner = newUrl; 
                 updateBannerPreview(); 
@@ -678,9 +705,8 @@
             if(studioTarget === "user") { 
                 const newUrl = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || ''; 
                 const n = document.getElementById('studio-nick-input').value.trim() || document.getElementById('display-name').innerText;
-                const tpl = { days: [], start: '19:00', end: '23:55' };
                 
-                const { error } = await client.from('users').upsert({ id: userState.id, avatar_url: newUrl, nickname: n, base_template: tpl }); 
+                const { error } = await client.from('users').update({ avatar_url: newUrl, nickname: n }).eq('id', userState.id); 
                 if (error) return alert("프로필 복구 실패: " + error.message);
 
                 document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(newUrl, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
@@ -925,11 +951,11 @@
             navigator.clipboard.writeText(text).then(() => alert('호출 메시지가 복사되었습니다! 🔔 디스코드 등에 붙여넣기 하세요.'));
         };
 
-        // V3.9.1: DB에서 기본 템플릿 불러오기 (Local Storage 폐기)
+        // V3.9.2: DB에서 기본 템플릿 불러오기
         window.loadBaseTemplate = async () => {
             const { data, error } = await client.from('users').select('base_template').eq('id', userState.id).single();
             if (error || !data || !data.base_template || data.base_template.days.length === 0) {
-                return alert('마이페이지(내 프로필)의 아바타를 클릭하여 먼저 [기본 스케줄 템플릿]을 설정해 주세요.');
+                return alert('마이페이지(내 프로필) 하단에서 먼저 [내 기본 스케줄 템플릿]을 세팅하고 저장해 주세요.');
             }
             
             const t = data.base_template;
