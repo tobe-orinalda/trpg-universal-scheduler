@@ -44,7 +44,6 @@
 
         .text-glow-white { text-shadow: 0 0 4px rgba(255, 255, 255, 1), 0 0 8px rgba(255, 255, 255, 0.9), 0 0 12px rgba(255, 255, 255, 0.7); }
         
-        /* V3.7.4: 타임라인 상세 시간 텍스트 짙은 청보라색 및 흰색 아우라(Glow) 교정 */
         .timeline-time-text {
             color: #16015C !important;
             text-shadow: 0 0 3px rgba(255, 255, 255, 1), 0 0 5px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8) !important;
@@ -125,11 +124,11 @@
                         <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">날짜 선택</label>
                         <input type="date" id="in-my-start-date" class="w-full bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors mb-2 cursor-pointer">
                         
-                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간</label>
+                        <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">가능한 시간 (5분 단위)</label>
                         <div class="flex gap-2 items-center mb-1">
-                            <input type="time" id="in-my-start" value="19:00" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            <input type="time" id="in-my-start" value="19:00" step="300" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
                             <span class="text-slate-400 font-bold">~</span>
-                            <input type="time" id="in-my-end" value="23:59" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
+                            <input type="time" id="in-my-end" value="23:55" step="300" class="flex-1 bg-white border-2 border-slate-200 p-2.5 rounded-xl text-xs font-bold outline-none focus:border-indigo-500 hover:border-indigo-300 transition-colors cursor-pointer">
                         </div>
 
                         <button type="button" onclick="toggle('my-comment-panel', true); this.classList.add('hidden')" id="btn-show-comment" class="text-[9px] font-bold text-indigo-500 text-left hover:underline w-fit py-0.5">+ 💬 코멘트 남기기 (선택)</button>
@@ -161,7 +160,7 @@
                     </div>
 
                     <div id="my-avail-list" class="space-y-2 mb-4 overflow-y-auto flex-grow max-h-[150px] pr-2 custom-scrollbar"></div>
-                    <div id="gm-control-panel" class="hidden mt-auto pt-6 border-t border-slate-100"><h4 class="text-xs md:text-sm font-black text-indigo-600 mb-2">👑 방장 권한 (일정 확정)</h4><div class="flex flex-col gap-2 mb-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-50 shadow-inner"><div class="flex gap-2"><input type="date" id="in-confirm-date" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><input type="time" id="in-confirm-time" value="19:00" class="cursor-pointer w-20 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"></div><div class="flex gap-2 items-center"><select id="in-confirm-repeat" onchange="toggleRepeatCount()" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><option value="none">반복 없음</option><option value="weekly">매주 반복</option></select><input type="number" id="in-confirm-count" min="2" max="24" value="4" class="hidden w-12 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold text-center outline-none hover:border-indigo-300 transition-colors"></div><button type="button" onclick="addConfirmedSchedule()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-sm hover-base btn-indigo-hover text-[10px]">확정하기</button></div><div id="confirmed-schedules-list" class="space-y-1 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar"></div></div>
+                    <div id="gm-control-panel" class="hidden mt-auto pt-6 border-t border-slate-100"><h4 class="text-xs md:text-sm font-black text-indigo-600 mb-2">👑 방장 권한 (일정 확정)</h4><div class="flex flex-col gap-2 mb-3 bg-indigo-50/50 p-3 rounded-xl border border-indigo-50 shadow-inner"><div class="flex gap-2"><input type="date" id="in-confirm-date" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><input type="time" id="in-confirm-time" value="19:00" step="300" class="cursor-pointer w-20 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"></div><div class="flex gap-2 items-center"><select id="in-confirm-repeat" onchange="toggleRepeatCount()" class="cursor-pointer flex-1 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold outline-none hover:border-indigo-300 transition-colors"><option value="none">반복 없음</option><option value="weekly">매주 반복</option></select><input type="number" id="in-confirm-count" min="2" max="24" value="4" class="hidden w-12 bg-white border border-indigo-100 p-2 rounded-lg text-[10px] font-bold text-center outline-none hover:border-indigo-300 transition-colors"></div><button type="button" onclick="addConfirmedSchedule()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold shadow-sm hover-base btn-indigo-hover text-[10px]">확정하기</button></div><div id="confirmed-schedules-list" class="space-y-1 max-h-[100px] overflow-y-auto pr-1 custom-scrollbar"></div></div>
                 </div>
             </div>
         </div>
@@ -254,7 +253,10 @@
         
         const AVAILABLE_TAGS = ['GM리스', 'GMPC', '텍스트세션', '보이스세션', '대면세션', '입문환영', '숙련자추천', '룰북필수', '룰북미소지자가능', '단편(원샷)', '단기(다회차)', '장기/캠페인'];
         const ALL_RULES_DB = ['가부키쵸 전설 나이트 버터플라이', '거점방어 좀비라인', '건독 리바이스드', '겁스(GURPS)', '누메네라', '다이얼렉트', '더블크로스(Double Cross)', '던전 앤 드래곤(D&D 5e)', '던전월드', '두려움 그 자체', '둘이서 수사', '로그 호라이즌', '마기카로기아(마기로기)', '마우스가드(Mouse Guard)', '마이크로스코프', '밤의 검은 사자들', '밤의 마녀들', '뱀파이어 더 마스커레이드(VtM)', '베센(VAESEN)', '비밀요원국', '사이버 퍼밀리어', '스파이어(SPIRE)', '스프롤(SPRAWL)', '시노비가미', '아곤', '아론의 사제', '어둠 속의 칼날', '언성듀엣', '여왕을 위하여', '울타리 너머', '은검의 스텔라 나이츠', '인세인(inSANe)', '잿불 속의 군단', '전광세계 배스천랜드', '제13시대', '취록의 플로리아', '크로스레터', '크툴루 컨피덴셜', '크툴루의 부름(CoC)', '트래블러(Traveler)', '팀 셜록(TEAM Sherlock)', '포도원의 파수견', '포지드 인 던전', '폴라리스', '프로키온의 무법자들', '피카레스크 로망', '피아스코', '화려한 괴도 팬터미즘(Phantomism)'];
-        const EMOJI_POOL = ['🎲','🧙‍♂️','🧝‍♀️','🧛','🧚','🧜‍♂️','🧞','🔮','🗡️','🏹','🛡️','📜','🧪','👑','💎','🐉','🦄','🦊','🦉','🐙','🐈','🐍','🐸','🦋','😎','🤔','🫠','🥹','🥸','🤯','🥳','😈','👽','👾','👻','🔥','💧','⚡','🌙','☀️','✨','⭐','🪐','🛸','🚀','⏳','🧭','⚖️','🗝️','🚪','🪞','🧿','⚔️','⛏️','⚙️','🔗','🩸','🧬','💀','☠️','🦴','👁️','🧠','🎭','🎪','⛺','🏕️','🏔️','🌋','🪵','🍄','🕸️','🥀','🌺','🌻','🌲','🌴','🌵','🍀','🍁','🍂','🌍','🌕','🌔','🌓','🌒','🌑','🌘','🌗','🌖','🌚','🌛','🌞','🌌','☁️','⛈️','🌤️','🌦️','🌧️','🌨️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','☔','❄️','☃️','☄️','🌊','🎃','🎄','🎆','🎇','🧨','🎈','🎉','🎊','🎀','🎁','🎗️','🎟️'];
+        
+        // V3.7.6: 이모지 자산(Emoji Pool) 확장
+        const EMOJI_POOL = ['🎲','🧙‍♂️','🧝‍♀️','🧛','🧚','🧜‍♂️','🧞','🔮','🗡️','🏹','🛡️','📜','🧪','👑','💎','🐉','🦄','🦊','🦉','🐙','🐈','🐍','🐸','🦋','😎','🤔','🫠','🥹','🥸','🤯','🥳','😈','👽','👾','👻','🔥','💧','⚡','🌙','☀️','✨','⭐','🪐','🛸','🚀','⏳','🧭','⚖️','🗝️','🚪','🪞','🧿','⚔️','⛏️','⚙️','🔗','🩸','🧬','💀','☠️','🦴','👁️','🧠','🎭','🎪','⛺','🏕️','🏔️','🌋','🪵','🍄','🕸️','🥀','🌺','🌻','🌲','🌴','🌵','🍀','🍁','🍂','🌍','🌕','🌔','🌓','🌒','🌑','🌘','🌗','🌖','🌚','🌛','🌞','🌌','☁️','⛈️','🌤️','🌦️','🌧️','🌨️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','☔','❄️','☃️','☄️','🌊','🎃','🎄','🎆','🎇','🧨','🎈','🎉','🎊','🎀','🎁','🎗️','🎟️','❤️','🧡','💛','💚','💙','🩵','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','🔭','🛰️','👨‍🚀','👩‍🚀','🧑‍🚀','🌠','🐾','🐈‍⬛','🐕','🐺','🦇','🦅','🕷️','🌹','🌷','🌸','💮','🏵️','🪷','🪬','🪙','🪄','🏰','🗺️','⚓','🚥','🚦','🎨','🖼️','🧵','🧶','🧸','🪀','🪁','🧩','🕹️','🎮','🃏','🎴','🀄'];
+        
         const GRADIENT_PRESETS = [ { name: '파이어볼', value: 'linear-gradient(135deg, #f83600 0%, #f9d423 100%)' }, { name: '엘프의 숲', value: 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)' }, { name: '아케인', value: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)' }, { name: '네크로맨서', value: 'linear-gradient(135deg, #434343 0%, black 100%)' }, { name: '사이버펑크', value: 'linear-gradient(135deg, #b465da 0%, #cf6cc9 50%, #ee609c 100%)' }, { name: '환상(기본)', value: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' }, { name: '심해', value: 'linear-gradient(135deg, #09203f 0%, #537895 100%)' } ];
 
         let filterKeyword = "", filterLoc = "all", filterStatus = false, filterTags = [], currentTags = [];
@@ -855,7 +857,6 @@
             document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
         }
 
-        // V3.7.4: 텍스트 색상을 짙은 청보라색으로 지정 및 흰색 아우라 효과 클래스(timeline-time-text) 주입
         window.openTimeline = (dateStr) => { 
             hideTooltip(); 
             const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); 
@@ -898,11 +899,10 @@
             if(!sD || !tS || !tE) return alert("날짜와 시간을 입력하세요."); 
             if(tS >= tE) return alert("종료 시간은 시작 시간보다 이후여야 합니다. (자정을 넘길 경우 이틀로 나누어 등록해주세요)");
             
-            const ps = []; const targetDates = [];
+            let targetDates = [];
             
             if (!isAdvancedSchedule) {
                 targetDates.push(sD);
-                ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: sD, start_time: tS, end_time: tE, comment: cVal });
             } else {
                 const eD = document.getElementById('in-my-end-date').value;
                 const fED = eD || sD; 
@@ -919,14 +919,29 @@
                     if (selectedWeekdays.includes(d.getDay())) {
                         const dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
                         targetDates.push(dateStr);
-                        ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: dateStr, start_time: tS, end_time: tE, comment: cVal }); 
                     }
                 } 
-                if (ps.length === 0) return alert("선택된 기간 내에 해당 요일이 없습니다."); 
+                if (targetDates.length === 0) return alert("선택된 기간 내에 해당 요일이 없습니다."); 
             }
             
             try {
-                await client.from('session_availability').delete().eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
+                const { data: existing } = await client.from('session_availability').select('available_date').eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
+                const countMap = {};
+                if (existing) existing.forEach(e => { countMap[e.available_date] = (countMap[e.available_date] || 0) + 1; });
+                
+                const ps = []; const overLimitDates = [];
+                
+                targetDates.forEach(d => {
+                    if ((countMap[d] || 0) >= 3) overLimitDates.push(d);
+                    else ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: d, start_time: tS, end_time: tE, comment: cVal });
+                });
+                
+                if (overLimitDates.length > 0) {
+                    alert(`⚠️ 다음 날짜는 하루 최대 3개의 일정이 꽉 차서 추가되지 않았습니다:\n${overLimitDates.join(', ')}`);
+                }
+                
+                if (ps.length === 0) return;
+
                 const { error } = await client.from('session_availability').insert(ps);
                 if (error) alert("일정 등록 중 DB 오류가 발생했습니다: " + error.message); 
                 else await renderRoom();
@@ -979,7 +994,7 @@
             if(currentSpace.space_type === 'large') renderLobbyGrid();
             else {
                 if(allSessions.length === 0) {
-                     const { error: insErr } = await client.from('sessions').insert({ space_code: currentSpace.space_code, title: currentSpace.space_name, rule: '자유 룰', capacity: 10, location_type: 'online', creator_id: userState.id, banner_color: '#4f46e5' });
+                     const { error: insErr } = await client.from('sessions').insert({ space_code: currentSpace.space_code, title: currentSpace.space_name, rule: '자유 룰', capacity: 10, location_type: 'online', creator_id: userState.id, banner_color: '#4f46e5' }).select().single();
                      if (insErr) alert("기본 세션 재생성 실패: " + insErr.message);
                      await fetchGlobalData();
                      goRoom(allSessions[0].id);
