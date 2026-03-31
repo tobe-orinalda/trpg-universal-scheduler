@@ -441,7 +441,6 @@
             }
         };
 
-        // V3.7: 코멘트 창 초기화 추가
         window.resetScheduleUI = () => {
             isAdvancedSchedule = false;
             const pnl = document.getElementById('advanced-schedule-panel');
@@ -624,10 +623,11 @@
         window.toggleLobbyFilterTag = (tag) => { if (filterTags.includes(tag)) filterTags = filterTags.filter(t => t !== tag); else filterTags.push(tag); renderFilterTagsUI(); renderLobbyGrid(); };
         window.clearFilterTags = () => { filterTags = []; renderFilterTagsUI(); renderLobbyGrid(); };
 
-        // V3.7: D-Day 로직 주입 (깜빡임 제거, 정적 시각 디자인)
+        // V3.7.1: D-Day 로직 수정 (참여하지 않은 세션은 정보값만 전달)
         function generateSessionCardHTML(s, mbs = null) { 
             if(!mbs) mbs = membersMap[s.id] || [];
             const isFull = mbs.length >= s.capacity, ts = s.tags || []; 
+            const isParticipating = userState && (s.creator_id === userState.id || mbs.some(m => m.user_id === userState.id));
             
             let dDayHtml = `<span class="bg-indigo-100 text-indigo-700 badge-status shadow-sm">모집 중</span>`;
             if (s.confirmed_schedules && s.confirmed_schedules.length > 0) {
@@ -636,11 +636,18 @@
                 const today = new Date();
                 today.setHours(0,0,0,0);
                 const diff = Math.ceil((firstDate - today) / (1000 * 60 * 60 * 24));
+                const mStr = String(firstDate.getMonth() + 1).padStart(2, '0');
+                const dStr = String(firstDate.getDate()).padStart(2, '0');
                 
-                if (diff < 0) dDayHtml = `<span class="bg-slate-200 text-slate-500 badge-status shadow-sm">✅ 완료</span>`;
-                else if (diff === 0) dDayHtml = `<span class="bg-red-600 text-white font-black badge-status shadow-md tracking-wider">🔥 D-Day</span>`;
-                else if (diff <= 3) dDayHtml = `<span class="bg-orange-100 text-orange-600 border border-orange-200 badge-status shadow-sm">⏳ D-${diff}</span>`;
-                else dDayHtml = `<span class="bg-slate-100 text-slate-500 border border-slate-200 badge-status shadow-sm">📅 D-${diff}</span>`;
+                if (!isParticipating) {
+                    if (diff < 0) dDayHtml = `<span class="bg-slate-200 text-slate-500 badge-status shadow-sm">✅ 완료</span>`;
+                    else dDayHtml = `<span class="bg-green-100 text-green-700 badge-status shadow-sm">✅ ${mStr}/${dStr} 확정</span>`;
+                } else {
+                    if (diff < 0) dDayHtml = `<span class="bg-slate-200 text-slate-500 badge-status shadow-sm">✅ 완료</span>`;
+                    else if (diff === 0) dDayHtml = `<span class="bg-red-600 text-white font-black badge-status shadow-md tracking-wider">🔥 D-Day</span>`;
+                    else if (diff <= 3) dDayHtml = `<span class="bg-orange-100 text-orange-600 border border-orange-200 badge-status shadow-sm">⏳ D-${diff}</span>`;
+                    else dDayHtml = `<span class="bg-slate-100 text-slate-500 border border-slate-200 badge-status shadow-sm">📅 D-${diff}</span>`;
+                }
             }
             
             const bH = renderCustomBoxHTML(s.banner_color || '#4f46e5', 'min-h-[5.5rem] md:min-h-[6.5rem] w-full p-4 md:p-5 flex flex-col justify-between relative', true, false); 
@@ -712,7 +719,6 @@
         }
         window.changeMasterMonth = (v) => { masterDate.setMonth(masterDate.getMonth() + v); renderMasterCalendar(); };
 
-        // V3.7: 클립보드 복사 및 외부 캘린더 연동 모듈 주입
         async function renderRoom() {
             const s = allSessions.find(x => x.id === currentSessionId); if (!s) return goLobby();
             const isGM = s.creator_id === userState.id, mbs = membersMap[s.id] || [], isJ = mbs.some(m => m.user_id === userState.id);
@@ -743,7 +749,6 @@
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="text-red-400 hover:text-red-600 text-base font-black px-2 hover-base hover:-translate-y-0.5">×</button></div>`).join('');
         }
 
-        // V3.7: 디스코드/마스토돈용 조율 현황 텍스트 클립보드 복사 엔진
         window.copyRoomStatus = () => {
             const s = allSessions.find(x => x.id === currentSessionId); if(!s) return;
             let txt = `🎲 [${s.title}] 일정 조율 현황\n\n`;
@@ -791,7 +796,6 @@
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
         window.addEventListener('scroll', hideTooltip, {passive: true});
 
-        // V3.7: 툴팁 리스트에 코멘트 💬 아이콘 연동
         function renderHeatmap(avs, tMs, confSchedules = []) { 
             const dM = {}; 
             avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
@@ -823,7 +827,6 @@
             document.getElementById('room-members-toggle').innerHTML = Array.from(new Map(avs.map(a => [a.user_id, a.users])).values()).map(u => renderCustomBoxHTML(u?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join(''); 
         }
 
-        // V3.7: 상세 타임라인 패널에 코멘트 텍스트 렌더링
         window.openTimeline = (dateStr) => { 
             hideTooltip(); 
             const dayAvs = roomAvailsCache.filter(a => a.available_date === dateStr); 
@@ -857,7 +860,6 @@
             }
         };
 
-        // V3.7: DB 코멘트 저장 페이로드 연동
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
