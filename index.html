@@ -444,13 +444,20 @@
 
         async function updateProfile(user) { 
             userState = user; toggle('user-profile', true); 
+            
+            let dN = user.user_metadata?.full_name || user.user_metadata?.name || '새로운 모험가'; 
+            let aU = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''; 
+            
             const { data, error } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
             
-            let dN = data?.nickname || user.user_metadata?.full_name || user.user_metadata?.name || '새로운 모험가'; 
-            let aU = data?.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture || ''; 
-            
-            if (error || !data || data.nickname !== dN || data.avatar_url !== aU) {
-                await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }).catch(e => console.error("User upsert error:", e)); 
+            if (error || !data) {
+                await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }).catch(e => console.error(e));
+            } else {
+                dN = data.nickname || dN;
+                aU = data.avatar_url || aU;
+                if (data.nickname !== dN || data.avatar_url !== aU) {
+                    await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }).catch(e => console.error(e)); 
+                }
             }
             
             document.getElementById('display-name').innerText = dN; 
@@ -475,6 +482,10 @@
             if (!userState) return toggle('modal-login-prompt', true);
             const sName = document.getElementById('in-space-name').value.trim(); const sType = document.querySelector('input[name="space_type"]:checked').value;
             if (!sName) return alert("공간 이름을 입력해 주세요!");
+            
+            const currentNick = document.getElementById('display-name').innerText === '동기화...' ? (userState.user_metadata?.full_name || userState.user_metadata?.name || '모험가') : document.getElementById('display-name').innerText;
+            await client.from('users').upsert({ id: userState.id, nickname: currentNick }).catch(e => console.warn(e));
+
             const newCode = generateCode();
             
             const { error } = await client.from('spaces').insert({ space_code: newCode, space_name: sName, space_type: sType, creator_id: userState.id });
@@ -523,6 +534,9 @@
                 let s = allSessions[0]; 
                 
                 if(!s && currentSpace.creator_id === userState.id) { 
+                    const currentNick = document.getElementById('display-name').innerText === '동기화...' ? (userState.user_metadata?.full_name || userState.user_metadata?.name || '모험가') : document.getElementById('display-name').innerText;
+                    await client.from('users').upsert({ id: userState.id, nickname: currentNick }).catch(e => console.warn(e));
+                    
                     const { data: newSess, error: insErr } = await client.from('sessions').insert({ space_code: currentSpace.space_code, title: currentSpace.space_name, rule: '자유 룰', capacity: 10, location_type: 'online', creator_id: userState.id, banner_color: '#4f46e5' }).select().single();
                     if(insErr) alert("세션 로딩 오류: " + insErr.message);
                     s = newSess;
@@ -1091,7 +1105,7 @@
                 });
             } 
             
-            if (allTargetSlots.length === 0) return alert("설정한 기간 내에 템플릿 요일과 일치하는 날짜가 없습니다."); 
+            if (allTargetSlots.length === 0) return alert("설정한 기간 내에 템플릿의 요일과 일치하는 날짜가 없습니다."); 
             
             try {
                 const uniqueDates = [...new Set(allTargetSlots.map(x => x.date))];
