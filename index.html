@@ -841,8 +841,8 @@
         async function fetchGlobalData() { 
             if(!currentSpace) return;
             const [sess, mem] = await Promise.all([ 
-                client.from('sessions').select(`*, creator:users(nickname)`).eq('space_code', currentSpace.space_code).order('created_at', { ascending: false }), 
-                client.from('session_members').select('*') 
+                client.from('sessions').select(`*, creator:users(nickname, avatar_url)`).eq('space_code', currentSpace.space_code).order('created_at', { ascending: false }), 
+                client.from('session_members').select(`*, users(nickname, avatar_url)`) 
             ]); 
             
             if (sess.error) console.error("Session Fetch Error:", sess.error);
@@ -945,12 +945,18 @@
             const gmGrid = document.getElementById('mypage-gm-grid'), plGrid = document.getElementById('mypage-pl-grid'), spGrid = document.getElementById('mypage-spaces-grid'); 
             const { data: mySpaces } = await client.from('spaces').select('*').eq('creator_id', userState.id).order('created_at', { ascending: false });
             spGrid.innerHTML = (!mySpaces || mySpaces.length === 0) ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">생성한 공간이 없습니다.</div>` : mySpaces.map(sp => `<div onclick="enterSpaceDirectly('${sp.space_code}')" class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-200 hover:-translate-y-2 transition-all cursor-pointer group flex flex-col"><div class="flex justify-between items-start mb-3"><span class="bg-indigo-50 text-indigo-600 text-[9px] font-black px-2 py-1 rounded-md border border-indigo-100">${sp.space_type === 'large' ? '대규모 (로비O)' : '소규모 단일팀'}</span><span class="text-[10px] font-mono text-slate-400 group-hover:text-indigo-500 transition-colors">🔑 ${sp.space_code}</span></div><h4 class="text-base font-black text-slate-800 mb-1 truncate">${sp.space_name}</h4><div class="mt-auto pt-3 text-right"><span class="text-[10px] font-bold text-indigo-500 group-hover:underline">공간 입장하기 →</span></div></div>`).join('');
-            const [mySess, joinedMem] = await Promise.all([ client.from('sessions').select(`*, creator:users(nickname)`).eq('creator_id', userState.id), client.from('session_members').select('*').eq('user_id', userState.id) ]); 
+            
+            const [mySess, joinedMem] = await Promise.all([ 
+                client.from('sessions').select(`*, creator:users(nickname, avatar_url)`).eq('creator_id', userState.id), 
+                client.from('session_members').select(`*, users(nickname, avatar_url)`).eq('user_id', userState.id) 
+            ]); 
+            
             let plSessionIds = (joinedMem.data || []).map(m => m.session_id); let joinedSessData = []; 
-            if(plSessionIds.length > 0) { const { data } = await client.from('sessions').select(`*, creator:users(nickname)`).in('id', plSessionIds); joinedSessData = data || []; } 
+            if(plSessionIds.length > 0) { const { data } = await client.from('sessions').select(`*, creator:users(nickname, avatar_url)`).in('id', plSessionIds); joinedSessData = data || []; } 
+            
             const combined = [...(mySess.data||[])]; joinedSessData.forEach(js => { if(!combined.find(s => s.id === js.id)) combined.push(js); }); 
             const allIds = combined.map(s => s.id); let allMems = []; 
-            if(allIds.length > 0) { const { data } = await client.from('session_members').select('*').in('session_id', allIds); allMems = data || []; } 
+            if(allIds.length > 0) { const { data } = await client.from('session_members').select(`*, users(nickname, avatar_url)`).in('session_id', allIds); allMems = data || []; } 
             
             const tempMap = {};
             allMems.forEach(m => {
