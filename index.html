@@ -468,12 +468,14 @@
             const { data, error } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
             
             if (error || !data) {
-                await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }, { onConflict: 'id' }).catch(e => console.error(e));
+                const { error: insErr } = await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }, { onConflict: 'id' });
+                if (insErr) alert("초기 프로필 생성 중 오류가 발생했습니다. (DB 권한 확인 필요): " + insErr.message);
             } else {
                 dN = data.nickname || dN;
                 aU = data.avatar_url || aU;
                 if (data.nickname !== dN || data.avatar_url !== aU) {
-                    await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }, { onConflict: 'id' }).catch(e => console.error(e)); 
+                    const { error: updErr } = await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }, { onConflict: 'id' });
+                    if (updErr) alert("프로필 업데이트 중 오류가 발생했습니다. (DB 권한 확인 필요): " + updErr.message);
                 }
             }
             
@@ -1654,6 +1656,15 @@
         window.toggleRepeatCount = () => { toggle('in-confirm-count', document.getElementById('in-confirm-repeat').value !== 'none'); };
         
         window.joinSession = async (sId) => { 
+            const currentNick = document.getElementById('display-name').innerText === '동기화...' ? (userState.user_metadata?.full_name || userState.user_metadata?.name || '모험가') : document.getElementById('display-name').innerText;
+            const aU = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || '';
+            const { error: uErr } = await client.from('users').upsert({ id: userState.id, nickname: currentNick, avatar_url: aU }, { onConflict: 'id' });
+            
+            if (uErr) {
+                alert("유저 정보 동기화 실패 (DB 권한 문제일 수 있습니다): " + uErr.message);
+                return;
+            }
+
             const { error } = await client.from('session_members').insert({ session_id: sId, user_id: userState.id }); 
             if (error) return alert("참여 실패: " + error.message);
             await fetchGlobalData();
