@@ -989,7 +989,7 @@
                 actionBtnsHtml = `<div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-4"><a href="${calUrl}" target="_blank" class="hover-micro bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-black text-blue-600 shadow-sm flex items-center gap-1.5">📅 G-캘린더</a></div>`;
             }
 
-            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}${actionBtnsHtml}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
+            document.getElementById('room-header').innerHTML = `<div class="absolute inset-0 z-0 opacity-60 rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden">${renderCustomBoxHTML(s.banner_color || '#4f46e5', 'w-full h-full', true, true)}</div><div class="relative z-10 flex flex-col items-center"><div class="flex gap-1.5 md:gap-2 flex-wrap mb-4">${(s.tags || []).map(t => `<span class="bg-indigo-100 text-indigo-700 text-[9px] md:text-[10px] font-black px-2 md:px-3 py-1 rounded-full uppercase shadow-sm">#${t}</span>`).join('')}</div><h2 class="text-2xl md:text-4xl font-black mb-1 text-slate-900 text-glow-white">${s.title} <span class="text-sm text-indigo-800">(${s.rule})</span></h2><div class="text-[11px] md:text-sm font-black text-slate-800 mb-4 text-glow-white">GM: ${gmName}</div><p class="max-w-2xl text-xs md:text-sm text-slate-900 font-batang mb-4 font-bold leading-relaxed whitespace-pre-wrap text-glow-white">${s.description || '개요가 없습니다.'}</p>${roomLocH}${actionBtnsHtml}<div class="flex items-center gap-3 md:gap-4 bg-white/80 p-2 md:p-3 rounded-xl border border-white w-fit shadow-sm backdrop-blur-md"><span class="text-[10px] md:text-xs font-bold text-slate-500">정원 ${mbs.length}/${s.capacity}</span><button type="button" onclick="copyMaxAvailStatus()" class="hover-micro bg-slate-100 text-slate-600 border border-slate-200 px-2 md:px-3 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-sm" title="최다 인원 가능일 복사">📋 요약 복사</button>${isGM ? `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors">⚙️ 방 설정</button>` : (!isJ && mbs.length < s.capacity ? `<button type="button" onclick="joinSession('${s.id}')" class="bg-indigo-600 text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold shadow-md hover-base">참여하기</button>` : (isJ ? `<button type="button" onclick="leaveSession('${s.id}')" class="bg-red-50 text-red-500 px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-bold border border-red-100 hover-base hover:bg-red-100">취소</button>` : ''))}</div></div>`;
             toggle('gm-control-panel', isGM);
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button type="button" onclick="removeConfirmedSchedule(${idx})" class="hover-micro text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
@@ -999,6 +999,54 @@
             const mavs = roomAvailsCache.filter(a => a.user_id === userState.id).sort((a,b) => new Date(a.available_date) - new Date(b.available_date));
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="hover-micro text-red-400 hover:text-red-600 text-base font-black px-2">×</button></div>`).join('');
         }
+
+        window.copyMaxAvailStatus = () => {
+            const s = allSessions.find(x => x.id === currentSessionId); 
+            if(!s) return;
+            
+            if (roomAvailsCache.length === 0) {
+                return alert("현재 조율표에 등록된 일정이 없습니다.");
+            }
+
+            const dateMap = {};
+            roomAvailsCache.forEach(a => {
+                if (!dateMap[a.available_date]) {
+                    dateMap[a.available_date] = { users: new Set(), names: new Set() };
+                }
+                dateMap[a.available_date].users.add(a.user_id);
+                dateMap[a.available_date].names.add(a.users?.nickname || '알 수 없음');
+            });
+
+            let maxCount = 0;
+            for (const date in dateMap) {
+                if (dateMap[date].users.size > maxCount) {
+                    maxCount = dateMap[date].users.size;
+                }
+            }
+
+            if (maxCount === 0) return alert("현재 조율표에 등록된 일정이 없습니다.");
+
+            const bestDates = [];
+            for (const date in dateMap) {
+                if (dateMap[date].users.size === maxCount) {
+                    bestDates.push(date);
+                }
+            }
+            bestDates.sort();
+
+            let text = `🎲 [${s.title}] 현재 최고 매칭일 (최대 ${maxCount}명 가능)\n\n`;
+            bestDates.forEach(date => {
+                const dO = new Date(date);
+                const m = String(dO.getMonth() + 1).padStart(2, '0');
+                const d = String(dO.getDate()).padStart(2, '0');
+                const w = dO.toLocaleDateString('ko-KR', { weekday: 'short' });
+                const namesArray = Array.from(dateMap[date].names).join(', ');
+                text += `- ${m}/${d} (${w}): ${namesArray}\n`;
+            });
+            text += `\n🔗 조율표 확인 (입장코드): [ ${currentSpace.space_code} ]`;
+
+            navigator.clipboard.writeText(text).then(() => alert('최고 매칭일 요약이 복사되었습니다! 📋'));
+        };
 
         window.copyNudgeText = () => {
             const s = allSessions.find(x => x.id === currentSessionId); if(!s) return;
