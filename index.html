@@ -1159,6 +1159,7 @@
             }
 
             let text = `🎲 [${s.title}] 확정 일정 안내\n\n`;
+            let validCount = 0; // 렌더링 된 유효 날짜 카운팅용
 
             s.confirmed_schedules.forEach(sc => {
                 const dO = new Date(sc.date);
@@ -1173,9 +1174,18 @@
                     }
                 });
 
-                const namesArray = Array.from(availableUsers).join(', ') || '없음';
-                text += `- ${m}/${d} (${w}) ${sc.time} : ${namesArray}\n`;
+                // 필터링: 해당 날짜에 가능하다고 체크한 사람이 1명 이상일 때만 텍스트에 추가
+                if (availableUsers.size > 0) {
+                    const namesArray = Array.from(availableUsers).join(', ');
+                    text += `- ${m}/${d} (${w}) ${sc.time} : ${namesArray}\n`;
+                    validCount++;
+                }
             });
+
+            // 필터링 결과, 유효한 날짜가 단 하나도 없을 경우의 예외 처리
+            if (validCount === 0) {
+                return alert("확정된 날짜 중 조율표에 일정을 등록한 인원이 있는 날짜가 없습니다.");
+            }
 
             text += `\n🔗 조율표 확인 (입장코드): [ ${currentSpace.space_code} ]`;
 
