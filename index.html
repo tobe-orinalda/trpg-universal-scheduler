@@ -7,20 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* 폰트 로드 */
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2205@1.0/KoPubWorldDotum.woff2');
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2205@1.0/KoPubWorldBatang.woff2');
         body { font-family: 'KoPubWorldDotum', sans-serif; -webkit-font-smoothing: antialiased; background-color: #f8fafc; overflow-x: hidden; }
         .font-batang { font-family: 'KoPubWorldBatang', serif; }
         
+        /* [UX 최적화] 매크로 버튼용 호버 (Z축 부유 효과) */
         .hover-base { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
         .hover-base:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15); }
         .btn-indigo-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4); }
         
+        /* [UX 최적화] 마이크로 버튼용 호버 (부유를 제거하여 무한 깜빡임 버그 방지, 명도와 그림자만 조절) */
         .hover-micro { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
         .hover-micro:hover { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); filter: brightness(95%); }
         
         .session-card { transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; height: 100%; }
         .session-card:hover { transform: translateY(-8px); filter: brightness(98%); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+        
+        /* 조율표 그리드 및 히트맵 셀 디자인 */
         .grid-7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
         @media (min-width: 640px) { .grid-7 { gap: 4px; } }
         .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; padding: 2px; border-radius: 8px; border: 1px solid #f1f5f9; background: #fff; }
@@ -30,7 +35,9 @@
         @media (min-width: 640px) { .heatmap-cell { border-radius: 12px; padding: 12px 8px; } }
         .heatmap-cell:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 20; border-color: #818cf8; }
         
+        /* 히트맵 인원 밀집도에 따른 색상 변환 (0명 -> Max) */
         .hm-0 { background: #f8fafc; color: #94a3b8; } .hm-1 { background: #e0e7ff; color: #4f46e5; } .hm-2 { background: #c7d2fe; color: #4338ca; } .hm-3 { background: #a5b4fc; color: #3730a3; } .hm-max { background: #4f46e5; color: #ffffff; box-shadow: 0 0 15px rgba(79,70,229,0.4); border-color: #3730a3; }
+        
         .badge-status { font-size: 8px; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
         @media (min-width: 640px) { .badge-status { font-size: 9px; padding: 3px 8px; border-radius: 6px; } }
         .timeline-label { min-width: 4rem; text-align: right; padding-right: 0.5rem; font-size: 10px; font-weight: 900; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -354,52 +361,70 @@
     </main>
 
     <script>
-        const S_URL = 'https://eebjvpvwakjumkanohzs.supabase.co', S_KEY = 'sb_publishable_Rlck6NADMmEyIRBz4kua5Q_izgzKAPO';
+        // [백엔드 초기화] Supabase 연동 키 및 클라이언트 객체 생성
+        const S_URL = 'https://eebjvpvwakjumkanohzs.supabase.co';
+        const S_KEY = 'sb_publishable_Rlck6NADMmEyIRBz4kua5Q_izgzKAPO';
         const client = supabase.createClient(S_URL, S_KEY);
-        let userState = null, currentSpace = null;
-        let locType = 'online', allSessions = [], allMembers = [], currentSessionId = null, masterDate = new Date(), roomAvailsCache = [];
-        let selectedWeekdays = [];
         
-        let mypageTemplates = []; 
-        let mypageSelectedDays = []; 
+        // 전역 상태 관리 변수
+        let userState = null; // 로그인된 사용자 정보
+        let currentSpace = null; // 현재 입장해 있는 '공간' 정보
+        let locType = 'online'; // 세션 개설 시 위치 타입 (온라인/오프라인)
+        let allSessions = []; // 공간 내 모든 세션 데이터
+        let allMembers = []; // 공간 내 모든 세션의 참여자 매핑 데이터
+        let currentSessionId = null; // 현재 열람 중인 개별 세션(방)의 ID
+        let masterDate = new Date(); // 로비 마스터 캘린더 기준 월(Month)
+        let roomAvailsCache = []; // 현재 방의 모든 사용자 스케줄 데이터 
+        let selectedWeekdays = []; // 일정 등록 시 선택된 요일 배열
         
-        let isAdvancedSchedule = false;
+        let mypageTemplates = []; // 마이페이지에 저장된 기본 스케줄 템플릿 목록
+        let mypageSelectedDays = []; // 템플릿 생성 시 선택된 요일
+        
+        let isAdvancedSchedule = false; // 고급 설정(다중/반복 일정 추가) 패널 열림 여부
         let isInitialLogin = true; 
         
-        let membersMap = {};
+        let membersMap = {}; // 세션 ID를 키로 하여 해당 세션의 멤버 배열을 담는 맵
         
+        // [상수 정의] DB 최적화를 위해 클라이언트에 하드코딩된 태그 및 룰 데이터
         const AVAILABLE_TAGS = ['GM리스', 'GMPC', '텍스트세션', '보이스세션', '대면세션', '입문환영', '숙련자추천', '룰북필수', '룰북미소지자가능', '단편(원샷)', '단기(다회차)', '장기/캠페인'];
         const ALL_RULES_DB = ['가부키쵸 전설 나이트 버터플라이', '거점방어 좀비라인', '건독 리바이스드', '겁스(GURPS)', '누메네라', '다이얼렉트', '더블크로스(Double Cross)', '던전 앤 드래곤(D&D 5e)', '던전월드', '두려움 그 자체', '둘이서 수사', '로그 호라이즌', '마기카로기아(마기로기)', '마우스가드(Mouse Guard)', '마이크로스코프', '밤의 검은 사자들', '밤의 마녀들', '뱀파이어 더 마스커레이드(VtM)', '베센(VAESEN)', '비밀요원국', '사이버 퍼밀리어', '스파이어(SPIRE)', '스프롤(SPRAWL)', '시노비가미', '아곤', '아론의 사제', '어둠 속의 칼날', '언성듀엣', '여왕을 위하여', '울타리 너머', '은검의 스텔라 나이츠', '인세인(inSANe)', '잿불 속의 군단', '전광세계 배스천랜드', '제13시대', '취록의 플로리아', '크로스레터', '크툴루 컨피덴셜', '크툴루의 부름(CoC)', '트래블러(Traveler)', '팀 셜록(TEAM Sherlock)', '포도원의 파수견', '포지드 인 던전', '폴라리스', '프로키온의 무법자들', '피카레스크 로망', '피아스코', '화려한 괴도 팬터미즘(Phantomism)'];
-        
         const EMOJI_POOL = ['🎲','🧙‍♂️','🧝‍♀️','🧛','🧚','🧜‍♂️','🧞','🔮','🗡️','🏹','🛡️','📜','🧪','👑','💎','🐉','🦄','🦊','🦉','🐙','🐈','🐍','🐸','🦋','😎','🤔','🫠','🥹','🥸','🤯','🥳','😈','👽','👾','👻','🔥','💧','⚡','🌙','☀️','✨','⭐','🪐','🛸','🚀','⏳','🧭','⚖️','🗝️','🚪','🪞','🧿','⚔️','⛏️','⚙️','🔗','🩸','🧬','💀','☠️','🦴','👁️','🧠','🎭','🎪','⛺','🏕️','🏔️','🌋','🪵','🍄','🕸️','🥀','🌺','🌻','🌲','🌴','🌵','🍀','🍁','🍂','🌍','🌕','🌔','🌓','🌒','🌑','🌘','🌗','🌖','🌚','🌛','🌞','🌌','☁️','⛈️','🌤️','🌦️','🌧️','🌨️','🌩️','🌪️','🌫️','🌬️','🌀','🌈','☔','❄️','☃️','☄️','🌊','🎃','🎄','🎆','🎇','🧨','🎈','🎉','🎊','🎀','🎁','🎗️','🎟️','❤️','🧡','💛','💚','💙','🩵','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','🔭','🛰️','👨‍🚀','👩‍🚀','🧑‍🚀','🌠','🐾','🐈‍⬛','🐕','🐺','🦇','🦅','🕷️','🌹','🌷','🌸','💮','🏵️','🪷','🪬','🪙','🪄','🏰','🗺️','⚓','🚥','🚦','🎨','🖼️','🧵','🧶','🧸','🪀','🪁','🧩','🕹️','🎮','🃏','🎴','🀄'];
-        
         const GRADIENT_PRESETS = [ { name: '파이어볼', value: 'linear-gradient(135deg, #f83600 0%, #f9d423 100%)' }, { name: '엘프의 숲', value: 'linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%)' }, { name: '아케인', value: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)' }, { name: '네크로맨서', value: 'linear-gradient(135deg, #434343 0%, black 100%)' }, { name: '사이버펑크', value: 'linear-gradient(135deg, #b465da 0%, #cf6cc9 50%, #ee609c 100%)' }, { name: '환상(기본)', value: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)' }, { name: '심해', value: 'linear-gradient(135deg, #09203f 0%, #537895 100%)' } ];
 
         let filterKeyword = "", filterLoc = "all", filterStatus = false, filterTags = [], currentTags = [];
         let tempGrad = GRADIENT_PRESETS[5].value, tempEmoji = "🎲", studioTarget = "user", tempSessionBanner = "#4f46e5";
 
+        // [유틸리티] DOM 요소의 표시/숨김을 전환하는 헬퍼 함수
         const toggle = (id, show) => { const el = document.getElementById(id); if(el) el.classList.toggle('hidden', !show); };
+        
+        // [보안] XSS 공격 방지를 위한 문자열 이스케이프
         const escapeHTML = (str) => str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        
+        // [렌더링] 타임라인 바의 좌측 오프셋(%)을 계산 (예: 12:30 -> (12.5 / 24) * 100)
         const timeToPercent = (tS) => { const [h, m] = tS.split(':').map(Number); return ((h + (m / 60)) / 24) * 100; };
         
+        // [UX] 사용자가 입력한 시간을 5분 단위로 스냅(강제 고정)하는 함수
         window.snapTo5Mins = (input) => {
             if (!input.value) return;
             let [h, m] = input.value.split(':').map(Number);
             m = Math.round(m / 5) * 5;
             if (m >= 60) { m = 0; h += 1; }
-            if (h >= 24) { h = 23; m = 55; }
+            if (h >= 24) { h = 23; m = 55; } // 임계점 클램핑
             input.value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         };
 
+        // [데이터 무결성 방어 - 가상 병합] 
+        // 실제 일정 조율표에 데이터를 전송한(Ghost) 유저와 명시적 참여자 리스트의 합집합(Set) 크기를 반환
         const getTrueMemberCount = (s, mbs) => {
             const pSet = new Set((mbs || []).map(m => m.user_id));
-            if (s.creator_id) pSet.add(s.creator_id); 
+            if (s.creator_id) pSet.add(s.creator_id); // 방장 강제 포함
             if (currentSessionId === s.id && typeof roomAvailsCache !== 'undefined') {
-                roomAvailsCache.forEach(a => pSet.add(a.user_id)); 
+                roomAvailsCache.forEach(a => pSet.add(a.user_id)); // 일정 등록자 강제 포함
             }
             return pSet.size;
         };
 
+        // [렌더링] 아바타 및 배너를 커스텀(그라데이션+이모지) 또는 외부 URL 기반으로 생성하는 HTML 제너레이터
         function renderCustomBoxHTML(url, classNames, isBanner = false, isLargeRoomBanner = false) { 
             if (!url) return `<div class="${classNames} bg-slate-200"></div>`; 
             if (url.startsWith('custom|')) { 
@@ -421,14 +446,17 @@
             return isBanner ? `<div class="${classNames}" style="background-color: ${url}"></div>` : `<img src="${url}" class="${classNames} object-cover">`; 
         }
         
+        // 무작위 6자리 입장 코드 생성기
         function generateCode() { const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let res = ''; for(let i=0; i<6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length)); return res; }
 
+        // DOM 로드 완료 후 초기화 작업 수행
         document.addEventListener("DOMContentLoaded", () => {
             const rAll = document.getElementById('in-rule-all'); if(rAll) rAll.innerHTML = `<option value="" disabled selected>전체 룰 목록</option>` + ALL_RULES_DB.map(r => `<option value="${r}">${r}</option>`).join('') + `<option value="custom">✏️ 직접 입력...</option>`;
             renderFilterTagsUI();
             const gPal = document.getElementById('gradient-palette'); if(gPal) gPal.innerHTML = GRADIENT_PRESETS.map((g, i) => `<button type="button" onclick="setAvatarGradient('${g.value}')" class="hover-micro w-8 h-8 rounded-full shadow-sm border-2 border-white hover:scale-110 transition-transform" style="background: ${g.value}" title="${g.name}"></button>`).join('');
             updateLocUI();
 
+            // Supabase 세션 확인 후 비로그인 시 로그인 화면 출력
             client.auth.getSession().then(({ data: { session } }) => {
                 if (!session) {
                     userState = null;
@@ -439,8 +467,9 @@
             });
         });
 
-        let activeViewBeforeMypage = 'view-hub';
+        let activeViewBeforeMypage = 'view-hub'; // 마이페이지를 닫았을 때 돌아갈 이전 화면 기억용
 
+        // [네비게이션] 각 화면 뷰 전환 라우터
         function switchView(viewId) {
             ['view-login', 'view-hub', 'view-lobby', 'view-room', 'view-mypage'].forEach(id => {
                 const el = document.getElementById(id);
@@ -458,6 +487,7 @@
             window.scrollTo(0,0);
         }
 
+        // Auth 상태 변경 감지 리스너
         client.auth.onAuthStateChange((ev, sess) => { 
             if (sess) { 
                 toggle('btn-login', false); 
@@ -470,14 +500,17 @@
             } 
         });
 
+        // [데이터 처리] 유저 프로필 동기화 및 방어적 삽입 (Defensive Upsert)
         async function updateProfile(user) { 
             userState = user; toggle('user-profile', true); 
             
             let dN = user.user_metadata?.full_name || user.user_metadata?.name || '새로운 모험가'; 
             let aU = user.user_metadata?.avatar_url || user.user_metadata?.picture || ''; 
             
+            // users 테이블에서 데이터 가져오기 시도
             const { data, error } = await client.from('users').select('nickname, avatar_url').eq('id', user.id).single(); 
             
+            // 데이터가 없거나 에러 시 강제 Upsert (RLS 충돌 방지를 위해 onConflict 명시)
             if (error || !data) {
                 const { error: insErr } = await client.from('users').upsert({ id: user.id, nickname: dN, avatar_url: aU }, { onConflict: 'id' });
                 if (insErr) alert("초기 프로필 생성 중 오류가 발생했습니다. (DB 권한 확인 필요): " + insErr.message);
@@ -490,12 +523,15 @@
                 }
             }
             
+            // 헤더 UI 업데이트
             document.getElementById('display-name').innerText = dN; 
             document.getElementById('header-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-white/80 object-cover shadow-sm'); 
             
+            // 마이페이지 UI 업데이트
             document.getElementById('mypage-nick-input').value = dN;
             document.getElementById('mypage-avatar-container').innerHTML = renderCustomBoxHTML(aU, 'w-full h-full rounded-full object-cover');
 
+            // 최초 로그인 시 로컬 스토리지 캐시를 읽어 원래 있던 공간으로 자동 입장 처리
             if (isInitialLogin) {
                 isInitialLogin = false;
                 const savedSpace = localStorage.getItem('trpg_current_space');
@@ -504,24 +540,29 @@
             }
         }
 
+        // 로그인/로그아웃 트리거
         document.getElementById('btn-login-main').onclick = () => client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
         document.getElementById('btn-login').onclick = () => client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
         window.handleLogout = async () => { if(confirm("로그아웃 하시겠습니까?")) { await client.auth.signOut(); localStorage.clear(); location.reload(); } };
 
+        // [로직] 새로운 공간(Space) 생성
         window.createSpace = async () => {
             if (!userState) return toggle('modal-login-prompt', true);
             const sName = document.getElementById('in-space-name').value.trim(); const sType = document.querySelector('input[name="space_type"]:checked').value;
             if (!sName) return alert("공간 이름을 입력해 주세요!");
             
+            // 유저 존재 보장 로직 
             const currentNick = document.getElementById('display-name').innerText === '동기화...' ? (userState.user_metadata?.full_name || userState.user_metadata?.name || '모험가') : document.getElementById('display-name').innerText;
             const { error: uErr } = await client.from('users').upsert({ id: userState.id, nickname: currentNick }, { onConflict: 'id' });
             if (uErr) console.warn(uErr);
 
             const newCode = generateCode();
             
+            // spaces 테이블 인서트
             const { error } = await client.from('spaces').insert({ space_code: newCode, space_name: sName, space_type: sType, creator_id: userState.id });
             if (error) return alert("공간 생성 오류: " + error.message);
             
+            // 소규모 공간일 경우 자동으로 기본 세션을 1개 생성
             if (sType === 'small') {
                 const { error: sessErr } = await client.from('sessions').insert({ space_code: newCode, title: sName, rule: '자유 룰', capacity: 10, location_type: 'online', creator_id: userState.id, banner_color: '#4f46e5' });
                 if (sessErr) console.error("Small space session auto-insert error:", sessErr);
@@ -534,16 +575,18 @@
             joinSpace();
         };
 
+        // [로직] 코드로 공간 입장
         window.joinSpace = async () => {
             if (!userState) return toggle('modal-login-prompt', true);
             const code = document.getElementById('in-join-code').value.trim().toUpperCase();
             if (!code || code.length !== 6) return alert("6자리 코드를 정확히 입력해 주세요.");
             const { data, error } = await client.from('spaces').select('*').eq('space_code', code).single();
             if (error || !data) return alert("존재하지 않거나 만료된 코드입니다. 🚫");
-            currentSpace = data; localStorage.setItem('trpg_current_space', JSON.stringify(data));
+            currentSpace = data; localStorage.setItem('trpg_current_space', JSON.stringify(data)); // 캐싱
             await initSpace();
         };
 
+        // 공간 초기화(진입) 시 내부 분기 처리
         async function initSpace() {
             toggle('header-space-info', true);
             document.getElementById('header-space-name').innerText = currentSpace.space_name;
@@ -555,15 +598,16 @@
                 document.getElementById('btn-delete-space').classList.add('hidden');
             }
 
-            await fetchGlobalData(); 
+            await fetchGlobalData(); // 공간 내 모든 세션 정보 로드
             
             if(currentSpace.space_type === 'large') {
                 document.getElementById('btn-back-lobby').classList.remove('hidden');
-                goLobby();
+                goLobby(); // 대규모는 로비로 직행
             } else {
                 document.getElementById('btn-back-lobby').classList.add('hidden');
                 let s = allSessions[0]; 
                 
+                // 세션이 삭제되었는데 소규모 방일 경우 강제 복구
                 if(!s && currentSpace.creator_id === userState.id) { 
                     const currentNick = document.getElementById('display-name').innerText === '동기화...' ? (userState.user_metadata?.full_name || userState.user_metadata?.name || '모험가') : document.getElementById('display-name').innerText;
                     const { error: uErr } = await client.from('users').upsert({ id: userState.id, nickname: currentNick }, { onConflict: 'id' });
@@ -576,7 +620,7 @@
                 }
                 
                 if(s) {
-                    goRoom(s.id);
+                    goRoom(s.id); // 소규모는 바로 세션 방으로 직행
                 } else {
                     alert("세션 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
                     switchView('view-hub');
@@ -584,6 +628,7 @@
             }
         }
 
+        // 공간 삭제
         window.deleteSpace = async () => {
             if (!currentSpace || !userState || currentSpace.creator_id !== userState.id) return;
             const confirmName = prompt(`🚨 경고: 공간 영구 삭제\n\n정말로 [${currentSpace.space_name}] 공간을 삭제하시겠습니까?\n이 공간에 속한 모든 세션과 참가자 일정이 영구적으로 증발합니다.\n\n삭제를 원하시면 아래 입력창에 공간 이름(${currentSpace.space_name})을 정확히 입력하세요.`);
@@ -598,6 +643,7 @@
             if(!document.getElementById('view-mypage').classList.contains('hidden')) renderMypageGrids();
         };
 
+        // 공간 나가기
         window.exitSpace = () => {
             currentSpace = null; currentSessionId = null; localStorage.removeItem('trpg_current_space');
             toggle('header-space-info', false); 
@@ -605,6 +651,7 @@
             switchView('view-hub');
         };
 
+        // 클립보드에 코드 복사
         window.copySpaceCode = () => {
             navigator.clipboard.writeText(currentSpace.space_code).then(() => alert("입장 코드가 복사되었습니다! ✨ 지인들에게 공유해 주세요."));
         };
@@ -619,6 +666,7 @@
             }
         };
 
+        // 세션 방 내부의 스케줄러 폼 UI 초기화
         window.resetScheduleUI = () => {
             isAdvancedSchedule = false;
             const pnl = document.getElementById('advanced-schedule-panel');
@@ -661,6 +709,7 @@
             switchView('view-mypage'); 
             renderMypageGrids(); 
             
+            // 유저 개인의 템플릿 불러오기
             const { data } = await client.from('users').select('base_template').eq('id', userState.id).single();
             let tplData = data?.base_template;
             
@@ -675,6 +724,7 @@
             renderMypageTemplates();
         };
         
+        // 다이렉트 접근 헬퍼 (마이페이지 등에서 특정 방 진입 시)
         window.enterSpaceDirectly = (code) => { document.getElementById('in-join-code').value = code; joinSpace(); };
         window.goRoomDirectly = async (sId, spaceCode) => {
             if (!currentSpace || currentSpace.space_code !== spaceCode) {
@@ -692,6 +742,9 @@
             goRoom(sId);
         };
 
+        // ==========================
+        // 스튜디오 (아바타 / 배너 편집 모달) 로직
+        // ==========================
         window.openAvatarModal = () => { 
             if (!userState) return toggle('modal-login-prompt', true);
             studioTarget = "user"; 
@@ -718,8 +771,11 @@
         };
 
         window.openBannerModal = () => { studioTarget = "session"; document.getElementById('studio-title').innerText = "🎲 세션 배너 스튜디오"; document.getElementById('btn-studio-revert').innerText = "기본 색상으로"; toggle('studio-nick-section', false); parseToStudio(tempSessionBanner); toggle('modal-avatar', true); };
+        
+        // 파이프(|) 구분자로 결합된 문자열을 파싱
         function parseToStudio(url) { if(url.startsWith('custom|')) { const p = url.split('|'); tempGrad = p[1]; tempEmoji = p[2]; } else { tempGrad = GRADIENT_PRESETS[5].value; tempEmoji = "🎲"; } updateAvatarPreview(); rerollEmojis(); }
         window.closeAvatarModal = () => { toggle('modal-avatar', false); };
+        
         window.rerollEmojis = () => { const shuffled = [...EMOJI_POOL].sort(() => 0.5 - Math.random()).slice(0, 10); document.getElementById('emoji-gacha-container').innerHTML = shuffled.map(e => `<button type="button" onclick="setAvatarEmoji('${e}')" class="hover-micro w-full aspect-square text-2xl bg-slate-50 hover:bg-indigo-50 border border-slate-100 rounded-xl flex items-center justify-center">${e}</button>`).join(''); document.getElementById('avatar-custom-emoji').value = ""; };
         window.setAvatarGradient = (grad) => { tempGrad = grad; updateAvatarPreview(); };
         window.applyCustomGradientUI = () => { const c1 = document.getElementById('custom-c1').value; const c2 = document.getElementById('custom-c2').value; tempGrad = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`; updateAvatarPreview(); };
@@ -731,6 +787,9 @@
             document.getElementById('avatar-preview').innerHTML = renderCustomBoxHTML(`custom|${tempGrad}|${tempEmoji}`, 'w-full h-full rounded-full border-4 border-slate-100 flex items-center justify-center text-4xl', isBannerMode, isBannerMode); 
         };
         
+        // ==========================
+        // 마이페이지 템플릿 제어 로직
+        // ==========================
         window.toggleMypageDay = (day) => {
             const b = document.getElementById(`mypage-day-${day}`);
             if (mypageSelectedDays.includes(day)) {
@@ -790,6 +849,7 @@
             alert("나만의 기본 스케줄 템플릿이 성공적으로 저장되었습니다! 💾\n각 세션 방에서 한 번에 묶어서 일괄 등록할 수 있습니다.");
         };
 
+        // 스튜디오 저장 공통 처리
         document.getElementById('btn-studio-save').onclick = async () => { 
             const newUrl = `custom|${tempGrad}|${tempEmoji}`; 
             if(studioTarget === "user") { 
@@ -847,10 +907,13 @@
             } 
         };
 
+        // 캘린더용 Map 객체
         let calendarMap = {};
 
+        // [데이터 처리] 전역 데이터를 Supabase에서 가져와 메모리에 할당
         async function fetchGlobalData() { 
             if(!currentSpace) return;
+            // [JOIN 누락 해결] avatar_url을 명시적으로 추가 호출하여 빈 캡슐 렌더링을 방지
             const [sess, mem] = await Promise.all([ 
                 client.from('sessions').select(`*, creator:users(nickname, avatar_url)`).eq('space_code', currentSpace.space_code).order('created_at', { ascending: false }), 
                 client.from('session_members').select(`*, users(nickname, avatar_url)`) 
@@ -868,6 +931,7 @@
                 membersMap[m.session_id].push(m);
             });
 
+            // 마스터 캘린더 표시용 데이터 가공
             calendarMap = {};
             allSessions.forEach(s => {
                 (s.confirmed_schedules || []).forEach(m => {
@@ -879,26 +943,30 @@
             renderMasterCalendar();
         }
 
+        // 로비 검색 및 태그 필터 동작 함수들
         window.updateFilters = () => { filterKeyword = document.getElementById('f-keyword').value.toLowerCase(); filterStatus = document.getElementById('f-status').checked; renderLobbyGrid(); };
         window.setFilterLoc = (loc) => { filterLoc = loc; ['all', 'online', 'offline'].forEach(l => { const b = document.getElementById(`f-loc-${l}`); b.className = (l === loc) ? "hover-micro px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold bg-indigo-600 text-white" : "hover-micro px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-[10px] md:text-xs font-bold bg-slate-100 text-slate-500 transition-colors"; }); renderLobbyGrid(); };
         window.renderFilterTagsUI = () => { document.getElementById('filter-tags-container').innerHTML = AVAILABLE_TAGS.map(tag => { const isS = filterTags.includes(tag); return `<button type="button" onclick="toggleLobbyFilterTag('${tag}')" class="hover-micro py-1 md:py-1.5 px-2 md:px-3 rounded-lg md:rounded-xl border-2 text-[9px] md:text-[10px] font-black transition-colors ${isS ? 'bg-indigo-50 border-indigo-600 text-indigo-600 shadow-inner' : 'bg-white border-slate-200 text-slate-400'}">#${tag}</button>`; }).join(''); };
         window.toggleLobbyFilterTag = (tag) => { if (filterTags.includes(tag)) filterTags = filterTags.filter(t => t !== tag); else filterTags.push(tag); renderFilterTagsUI(); renderLobbyGrid(); };
         window.clearFilterTags = () => { filterTags = []; renderFilterTagsUI(); renderLobbyGrid(); };
 
+        // [UX 최적화] 로비 및 마이페이지의 세션을 날짜 임박순(Gravity)으로 상단 정렬
         const sortByGravity = (a, b) => {
             const getW = (s) => {
-                if (!s.confirmed_schedules || s.confirmed_schedules.length === 0) return 10000;
+                if (!s.confirmed_schedules || s.confirmed_schedules.length === 0) return 10000; // 미확정은 하단
                 const d = new Date(s.confirmed_schedules[0].date); d.setHours(0,0,0,0);
                 const t = new Date(); t.setHours(0,0,0,0);
                 const diff = Math.ceil((d - t) / 86400000);
-                if (diff < 0) return 20000 - diff; 
+                if (diff < 0) return 20000 - diff; // 지난 일정은 가장 아래로
                 return diff; 
             };
             return getW(a) - getW(b);
         };
 
+        // 세션 카드 컴포넌트 HTML 생성기
         function generateSessionCardHTML(s, mbs = null) { 
             if(!mbs) mbs = membersMap[s.id] || [];
+            // [데이터 무결성 방어] 가상 병합을 통한 실제 인원 산출
             const trueCnt = getTrueMemberCount(s, mbs);
             const isFull = trueCnt >= s.capacity, ts = s.tags || []; 
             const isParticipating = userState && (s.creator_id === userState.id || mbs.some(m => m.user_id === userState.id));
@@ -932,6 +1000,7 @@
             return `<div onclick="goRoomDirectly('${s.id}', '${s.space_code}')" class="session-card bg-white rounded-3xl md:rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden flex flex-col text-left h-full">${bH.replace('relative', 'relative z-0').replace('</div>', `<div class="absolute inset-0 z-10 p-4 md:p-5 flex flex-col justify-between"><div class="flex justify-between items-start"><span class="bg-white/20 backdrop-blur-md text-white text-[8px] md:text-[9px] font-black px-2 md:px-3 py-1 rounded-full border border-white/30 uppercase shadow-sm">${s.location_type}</span>${dDayHtml}</div><div class="flex flex-wrap justify-end gap-y-1">${ts.map(t => `<span class="text-[9px] font-black text-white drop-shadow-md ml-1.5">#${t}</span>`).join('')}</div></div></div>`)}<div class="p-5 md:p-6 flex-grow flex flex-col"><p class="text-[9px] md:text-[10px] font-black text-indigo-500 mb-1 tracking-tighter uppercase">${s.rule || '자유 룰'}</p><h4 class="text-sm md:text-base font-black text-slate-800 mb-1 line-clamp-2 leading-tight">${s.title}</h4>${locText}<div class="mt-auto pt-4 flex justify-between items-center"><span class="text-[9px] font-bold text-slate-500 truncate mr-2">GM: ${gmName}</span><span class="text-[10px] md:text-[11px] font-black flex-shrink-0 ${isFull ? 'text-red-400' : 'text-slate-400'}">👤 ${trueCnt}/${s.capacity}</span></div></div></div>`; 
         }
 
+        // 로비 렌더링
         function renderLobbyGrid() { 
             const grid = document.getElementById('session-grid'); if(!grid) return; 
             if(allSessions.length === 0) return grid.innerHTML = `<div class="col-span-full py-16 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">현재 생성된 세션이 없습니다. <br>새로운 모험을 열어보세요!</div>`; 
@@ -952,11 +1021,13 @@
             else grid.innerHTML = filtered.map(s => generateSessionCardHTML(s)).join(''); 
         }
         
+        // 마이페이지 렌더링
         async function renderMypageGrids() { 
             const gmGrid = document.getElementById('mypage-gm-grid'), plGrid = document.getElementById('mypage-pl-grid'), spGrid = document.getElementById('mypage-spaces-grid'); 
             const { data: mySpaces } = await client.from('spaces').select('*').eq('creator_id', userState.id).order('created_at', { ascending: false });
             spGrid.innerHTML = (!mySpaces || mySpaces.length === 0) ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">생성한 공간이 없습니다.</div>` : mySpaces.map(sp => `<div onclick="enterSpaceDirectly('${sp.space_code}')" class="bg-white p-5 rounded-[1.5rem] shadow-sm border border-slate-200 hover:-translate-y-2 transition-all cursor-pointer group flex flex-col"><div class="flex justify-between items-start mb-3"><span class="bg-indigo-50 text-indigo-600 text-[9px] font-black px-2 py-1 rounded-md border border-indigo-100">${sp.space_type === 'large' ? '대규모 (로비O)' : '소규모 단일팀'}</span><span class="text-[10px] font-mono text-slate-400 group-hover:text-indigo-500 transition-colors">🔑 ${sp.space_code}</span></div><h4 class="text-base font-black text-slate-800 mb-1 truncate">${sp.space_name}</h4><div class="mt-auto pt-3 text-right"><span class="text-[10px] font-bold text-indigo-500 group-hover:underline">공간 입장하기 →</span></div></div>`).join('');
             
+            // [JOIN 누락 방어] 마이페이지에서도 아바타가 유실되지 않도록 연동 조회 
             const [mySess, joinedMem] = await Promise.all([ 
                 client.from('sessions').select(`*, creator:users(nickname, avatar_url)`).eq('creator_id', userState.id), 
                 client.from('session_members').select(`*, users(nickname, avatar_url)`).eq('user_id', userState.id) 
@@ -984,6 +1055,7 @@
             plGrid.innerHTML = pls.length === 0 ? `<div class="col-span-full py-8 text-center text-slate-400 font-bold text-sm bg-slate-50 rounded-[2rem] border border-slate-100">참여 중인 세션이 없습니다.</div>` : pls.map(s => generateSessionCardHTML(s, tempMap[s.id])).join(''); 
         }
 
+        // 로비 중앙의 마스터 캘린더 생성기
         function renderMasterCalendar() { 
             const year = masterDate.getFullYear(), month = masterDate.getMonth(); 
             document.getElementById('master-month-title').innerText = `${year}.${String(month+1).padStart(2,'0')}`; 
@@ -1005,6 +1077,7 @@
         }
         window.changeMasterMonth = (v) => { masterDate.setMonth(masterDate.getMonth() + v); renderMasterCalendar(); };
 
+        // [렌더링] 개별 세션 방(조율표) 데이터 로드 및 컴포넌트 마운트
         async function renderRoom() {
             const s = allSessions.find(x => x.id === currentSessionId); if (!s) return goLobby();
             const isGM = s.creator_id === userState.id;
@@ -1012,17 +1085,20 @@
             const { data: avs } = await client.from('session_availability').select(`*, users(nickname, avatar_url)`).eq('session_id', s.id);
             roomAvailsCache = avs || []; closeTimeline(); 
             
+            // [데이터 무결성 방어 - 가상 병합] 기존 명단(originalMbs)과 일정 등록자(Ghost)를 합쳐 진성 명단(virtualMbs) 생성
             const originalMbs = membersMap[s.id] || [];
             const officiallyJoined = originalMbs.some(m => m.user_id === userState.id);
             
             let virtualMbs = [...originalMbs];
             const mbsIds = new Set(virtualMbs.map(m => m.user_id));
             
+            // 방장 강제 편입
             if (s.creator_id && !mbsIds.has(s.creator_id)) {
                 virtualMbs.push({ session_id: s.id, user_id: s.creator_id, users: s.creator });
                 mbsIds.add(s.creator_id);
             }
             
+            // 조율표 등록자 강제 편입
             roomAvailsCache.forEach(a => {
                 if (a.user_id && !mbsIds.has(a.user_id)) {
                     virtualMbs.push({ session_id: s.id, user_id: a.user_id, users: a.users });
@@ -1030,8 +1106,8 @@
                 }
             });
             
-            const trueCnt = virtualMbs.length;
-            const isEffectivelyJoined = mbsIds.has(userState.id);
+            const trueCnt = virtualMbs.length; // 실제 인원수
+            const isEffectivelyJoined = mbsIds.has(userState.id); // 패널 블록 해제용 검증
             
             const gmName = s.creator?.nickname || '알 수 없음';
             const isUrl = s.location_detail && (s.location_detail.startsWith('http://') || s.location_detail.startsWith('https://'));
@@ -1048,6 +1124,7 @@
                 actionBtnsHtml = `<div class="flex flex-wrap items-center justify-center gap-3 md:gap-4 mb-4"><a href="${calUrl}" target="_blank" class="hover-micro bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg text-[10px] font-black text-blue-600 shadow-sm flex items-center gap-1.5">📅 G-캘린더</a></div>`;
             }
 
+            // [UI 최적화] 방 설정 및 참여 버튼을 우측 상단으로 분리 배치 (조작 용이성 증대)
             let joinBtnHtml = '';
             if (isGM) {
                 joinBtnHtml = `<button type="button" onclick="openEditModal('${s.id}')" class="bg-indigo-600/90 backdrop-blur-sm text-white px-3 md:px-4 py-1 md:py-1.5 rounded-lg text-[10px] md:text-xs font-black shadow-md hover-base transition-colors border border-indigo-400/50">⚙️ 방 설정</button>`;
@@ -1077,7 +1154,7 @@
             `;
             
             toggle('gm-control-panel', isGM);
-            toggle('schedule-blocker', !isEffectivelyJoined);
+            toggle('schedule-blocker', !isEffectivelyJoined); // 비인가자(고스트 입력 방지) 접근 차단막 트리거
             
             document.getElementById('confirmed-schedules-list').innerHTML = (s.confirmed_schedules || []).length === 0 ? `<div class="text-[9px] text-slate-400 italic font-bold">아직 확정된 일정이 없습니다.</div>` : s.confirmed_schedules.map((sc, idx) => `<div class="flex justify-between items-center bg-white p-2 rounded-lg border border-slate-100 text-[10px] shadow-sm"><span class="font-bold text-slate-600">${sc.date} <span class="text-indigo-500 ml-1">${sc.time}</span></span><button type="button" onclick="removeConfirmedSchedule(${idx})" class="hover-micro text-slate-300 font-black px-2 hover:text-red-500 text-sm">×</button></div>`).join('');
             
@@ -1086,7 +1163,7 @@
             document.getElementById('my-avail-list').innerHTML = mavs.length === 0 ? `<div class="text-[10px] text-slate-400 font-bold p-4 text-center bg-white rounded-xl border border-slate-100">등록한 일정이 없습니다.</div>` : mavs.map(a => `<div class="flex justify-between items-center bg-indigo-50 p-2 md:p-3 rounded-xl border border-indigo-100"><div class="flex flex-col"><span class="font-bold text-indigo-900 text-[11px]">${a.available_date.slice(5)}</span><span class="text-[8px] font-black text-indigo-500">${a.start_time.slice(0,5)}~${a.end_time.slice(0,5)}</span></div><button type="button" onclick="delMyAvail('${a.id}')" class="hover-micro text-red-400 hover:text-red-600 text-base font-black px-2">×</button></div>`).join('');
             document.getElementById('room-members-toggle').innerHTML = virtualMbs.map(m => renderCustomBoxHTML(m.users?.avatar_url, 'w-5 h-5 md:w-6 md:h-6 rounded-full border border-white shadow-sm')).join('');
 
-            // 조율표 타이틀 영역에 📋 확정일 복사 버튼 추가 렌더링
+            // [UI 추가] 조율표 타이틀 영역에 📋 확정일 복사 버튼 렌더링
             const timelineHeader = document.querySelector('#view-room .flex.justify-between.items-end.mb-6.border-b.pb-4');
             if (timelineHeader) {
                 timelineHeader.innerHTML = `
@@ -1102,6 +1179,7 @@
             }
         }
 
+        // [데이터 처리] 요약 복사 기능: 가장 사람이 많이 모이는 '최대 교집합' 날짜를 추출
         window.copyMaxAvailStatus = () => {
             const s = allSessions.find(x => x.id === currentSessionId); 
             if(!s) return;
@@ -1119,6 +1197,7 @@
                 dateMap[a.available_date].names.add(a.users?.nickname || '알 수 없음');
             });
 
+            // 1단계: 가장 많은 인원이 겹치는 최댓값(maxCount) 탐색
             let maxCount = 0;
             for (const date in dateMap) {
                 if (dateMap[date].users.size > maxCount) {
@@ -1128,6 +1207,7 @@
 
             if (maxCount === 0) return alert("현재 조율표에 등록된 일정이 없습니다.");
 
+            // 2단계: 최댓값과 일치하는 날짜들만 배열로 수집 후 정렬
             const bestDates = [];
             for (const date in dateMap) {
                 if (dateMap[date].users.size === maxCount) {
@@ -1150,6 +1230,7 @@
             navigator.clipboard.writeText(text).then(() => alert('최고 매칭일 요약이 복사되었습니다! 📋'));
         };
 
+        // [데이터 처리] 확정일 복사 기능: 방장이 지정한 날짜를 Anchor로 삼아 가능 인원을 스캔
         window.copyConfirmedStatus = () => {
             const s = allSessions.find(x => x.id === currentSessionId); 
             if(!s) return;
@@ -1159,7 +1240,7 @@
             }
 
             let text = `🎲 [${s.title}] 확정 일정 안내\n\n`;
-            let validCount = 0; // 렌더링 된 유효 날짜 카운팅용
+            let validCount = 0; // [필터링] 빈 날짜를 제외하기 위한 유효성 카운트
 
             s.confirmed_schedules.forEach(sc => {
                 const dO = new Date(sc.date);
@@ -1167,6 +1248,7 @@
                 const d = String(dO.getDate()).padStart(2, '0');
                 const w = dO.toLocaleDateString('ko-KR', { weekday: 'short' });
                 
+                // 해당 확정 날짜에 조율표를 등록한 인원 스캔 (Set으로 중복 제거)
                 const availableUsers = new Set();
                 roomAvailsCache.forEach(a => {
                     if (a.available_date === sc.date) {
@@ -1174,7 +1256,7 @@
                     }
                 });
 
-                // 필터링: 해당 날짜에 가능하다고 체크한 사람이 1명 이상일 때만 텍스트에 추가
+                // 필터링: 1명 이상 등록된 '유효한 일정'만 텍스트로 추가 (방장의 잘못된 다중 반복 클릭 등에서 비롯된 고스트 데이 제거)
                 if (availableUsers.size > 0) {
                     const namesArray = Array.from(availableUsers).join(', ');
                     text += `- ${m}/${d} (${w}) ${sc.time} : ${namesArray}\n`;
@@ -1182,7 +1264,6 @@
                 }
             });
 
-            // 필터링 결과, 유효한 날짜가 단 하나도 없을 경우의 예외 처리
             if (validCount === 0) {
                 return alert("확정된 날짜 중 조율표에 일정을 등록한 인원이 있는 날짜가 없습니다.");
             }
@@ -1210,6 +1291,9 @@
             navigator.clipboard.writeText(text).then(() => alert('호출 메시지가 복사되었습니다! 🔔 디스코드 등에 붙여넣기 하세요.'));
         };
 
+        // ==========================
+        // 템플릿 마법사: 내 템플릿 일괄 불러오기 로직
+        // ==========================
         window.openTemplateModal = async () => {
             const { data, error } = await client.from('users').select('base_template').eq('id', userState.id).single();
             let tplData = data?.base_template;
@@ -1268,13 +1352,14 @@
 
         window.applySingleTemplateBulk = async (idx) => {
             const t = window.currentAvailableTemplates[idx];
-            await executeBulkInsert([t]);
+            await executeBulkInsert([t]); // 하나만 배열로 감싸서 전달
         };
 
         window.applyAllTemplatesBulk = async () => {
-            await executeBulkInsert(window.currentAvailableTemplates);
+            await executeBulkInsert(window.currentAvailableTemplates); // 전체 템플릿 배열 전달
         };
 
+        // [핵심 엔진] 다중 템플릿 일괄 등록 (Bulk Insert) 파이프라인
         async function executeBulkInsert(templatesToApply) {
             const sD = document.getElementById('modal-tpl-start-date').value;
             const eD = document.getElementById('modal-tpl-end-date').value;
@@ -1288,8 +1373,9 @@
             if (eDt < sDt) return alert("기간 설정 오류: 종료 날짜가 시작 날짜보다 빠를 수 없습니다."); 
             
             let allTargetSlots = []; 
-            let limit = 365; 
+            let limit = 365; // 최대 1년 치 무한루프 방어
             
+            // Step 1: 기간 내의 날짜들을 순회하며 템플릿에 해당하는 요일의 슬롯을 추출
             for (let d = new Date(sDt); d <= eDt; d.setDate(d.getDate() + 1)) { 
                 if (limit-- < 0) break; 
                 const dayOfWeek = d.getDay();
@@ -1305,6 +1391,7 @@
             if (allTargetSlots.length === 0) return alert("설정한 기간 내에 템플릿 요일과 일치하는 날짜가 없습니다."); 
             
             try {
+                // Step 2: 해당 기간에 내가 이미 등록해둔 일정(Target)을 통째로 Select
                 const uniqueDates = [...new Set(allTargetSlots.map(x => x.date))];
                 const { data: existing } = await client.from('session_availability').select('*').eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', uniqueDates);
                 
@@ -1316,6 +1403,7 @@
                 
                 const ps = []; const toDeleteIds = []; let limitWarning = false;
                 
+                // Step 3: 충돌 스캔 및 덮어쓰기 로직 연산
                 for (const slot of allTargetSlots) {
                     const daySlots = existingMap[slot.date] || [];
                     let hasOverlap = false;
@@ -1332,13 +1420,14 @@
                         toDeleteIds.push(...overlappingIds);
                         ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: slot.date, start_time: slot.start, end_time: slot.end, comment: "템플릿 일괄 적용" });
                     } else {
-                        if (daySlots.length >= 3) limitWarning = true;
+                        if (daySlots.length >= 3) limitWarning = true; // Supabase의 일일 슬롯 제한 체크
                         else ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: slot.date, start_time: slot.start, end_time: slot.end, comment: "템플릿 일괄 적용" });
                     }
                 }
                 
                 if (limitWarning) alert(`⚠️ 일부 날짜는 하루 최대 3개의 일정이 꽉 차서 무시되었습니다.`);
                 
+                // Step 4: Delete -> Insert 트랜잭션 수행
                 if (toDeleteIds.length > 0) await client.from('session_availability').delete().in('id', toDeleteIds);
                 if (ps.length > 0) {
                     const { error } = await client.from('session_availability').insert(ps);
@@ -1347,13 +1436,16 @@
                 
                 toggle('modal-select-template', false);
                 alert("🚀 지정한 기간 내의 템플릿 일정이 성공적으로 일괄 등록되었습니다!");
-                await renderRoom();
+                await renderRoom(); // 재렌더링
                 
             } catch (err) {
                 alert("시스템 접속 오류가 발생했습니다: " + err.message);
             }
         }
 
+        // ==========================
+        // 다른 세션의 내 일정 복사해오기 (Import)
+        // ==========================
         window.openImportModal = () => {
             const sel = document.getElementById('import-session-select');
             sel.innerHTML = '<option value="">세션을 선택하세요</option>';
@@ -1379,6 +1471,7 @@
             data.forEach(a => { ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: a.available_date, start_time: a.start_time, end_time: a.end_time, comment: a.comment }); });
             
             try {
+                // 가져오려는 날짜들 기반으로 현재 세션의 충돌 데이터 선조회
                 const targetDates = [...new Set(ps.map(x => x.available_date))];
                 const { data: existing } = await client.from('session_availability').select('*').eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
                 
@@ -1395,6 +1488,7 @@
                     for (const slot of daySlots) {
                         if (p.start_time < slot.end_time && p.end_time > slot.start_time) { hasOverlap = true; break; }
                     }
+                    // 충돌이 없고 슬롯 여유가 있을 때만 최종 배열에 넣음
                     if (!hasOverlap && daySlots.length < 3) {
                         finalPs.push(p);
                         daySlots.push(p);
@@ -1414,6 +1508,7 @@
             }
         };
 
+        // [툴팁 엔진] 마우스 커서에 따라 지능적으로 팝업 방향과 위치를 계산
         window.showTooltip = (el, title, raw) => { 
             const tt = document.getElementById('global-tooltip'); 
             tt.classList.remove('hidden'); 
@@ -1421,12 +1516,14 @@
             
             const r = el.getBoundingClientRect(); 
             const ttW = tt.offsetWidth; const ttH = tt.offsetHeight;
-            let leftPos = r.left + (r.width/2) - (ttW/2);
+            let leftPos = r.left + (r.width/2) - (ttW/2); // 중앙 정렬 베이스
             const padding = 10;
+            // 화면 밖으로 이탈 방지
             if (leftPos < padding) leftPos = padding;
             if (leftPos + ttW > window.innerWidth - padding) leftPos = window.innerWidth - ttW - padding;
             
             let topPos; const spaceBelow = window.innerHeight - r.bottom;
+            // 툴팁 위치를 힛박스의 상하단 여유 공간에 따라 동적 스왑
             if (spaceBelow > ttH + 20) {
                 topPos = r.bottom - 4; 
                 tt.innerHTML += `<div class="absolute -top-[6px] w-3.5 h-3.5 bg-white border-t-2 border-l-2 border-indigo-100 z-0" style="left: 50%; transform: translateX(-50%) rotate(45deg);"></div>`;
@@ -1443,6 +1540,9 @@
         document.addEventListener('mousedown', (e) => { if (!e.target.closest('.heatmap-cell') && !e.target.closest('#global-tooltip')) hideTooltip(); });
         window.addEventListener('scroll', hideTooltip, {passive: true});
 
+        // ==========================
+        // 코어 시각화 엔진: 히트맵 & 타임라인
+        // ==========================
         function renderHeatmap(avs, tMs, confSchedules = []) { 
             const dM = {}; 
             avs.forEach(a => { if(!dM[a.available_date]) dM[a.available_date] = []; dM[a.available_date].push(a); }); 
@@ -1451,6 +1551,7 @@
             
             let htmlBuffer = sDs.length === 0 ? `<div class="col-span-full py-10 text-center text-slate-400 font-bold bg-slate-50 rounded-[2rem] border border-slate-100">일정을 등록해 주세요!</div>` : sDs.map(date => { 
                 const dayAvs = dM[date], cnt = new Set(dayAvs.map(x => x.user_id)).size; 
+                // 인원수 임계점(Threshold)에 따른 CSS 등급 부여 로직
                 let cCls = 'hm-0'; if(cnt > 0) cCls = 'hm-1'; if(cnt >= tMs/2) cCls = 'hm-2'; if(cnt >= tMs-1) cCls = 'hm-3'; if(cnt === tMs && tMs > 1) cCls = 'hm-max'; 
                 
                 const isConf = cDates.includes(date);
@@ -1480,6 +1581,7 @@
             const dO = new Date(dateStr), m = String(dO.getMonth()+1).padStart(2,'0'), d = String(dO.getDate()).padStart(2,'0'), w = dO.toLocaleDateString('ko-KR', {weekday:'short'}); 
             document.getElementById('timeline-date-title').innerText = `${m}/${d} (${w}) 타임라인`; 
             
+            // 유저 단위로 1인 1트랙에 병합
             const userGroups = {};
             dayAvs.forEach(a => {
                 if(!userGroups[a.user_id]) {
@@ -1519,6 +1621,7 @@
             }
         };
 
+        // [데이터 처리] 내 일정 신규 등록(추가) 컨트롤러 (방어적 배치 삽입 포함)
         window.addMyAvail = async () => { 
             const sD = document.getElementById('in-my-start-date').value;
             const tS = document.getElementById('in-my-start').value;
@@ -1526,10 +1629,11 @@
             const cVal = document.getElementById('in-my-comment').value.trim();
             
             if(!sD || !tS || !tE) return alert("날짜와 시간을 입력하세요."); 
-            if(tS >= tE) return alert("종료 시간은 시작 시간보다 이후여야 양합니다. (자정을 넘길 경우 이틀로 나누어 등록해주세요)");
+            if(tS >= tE) return alert("종료 시간은 시작 시간보다 이후여야 합니다. (자정을 넘길 경우 이틀로 나누어 등록해주세요)");
             
             let targetDates = [];
             
+            // 스케줄러 타입에 따른 목표 타겟 날짜 생성
             if (!isAdvancedSchedule) {
                 targetDates.push(sD);
             } else {
@@ -1554,6 +1658,7 @@
             }
             
             try {
+                // [안티-블로킹 로직] for루프 밖에서 일괄 교체 확인
                 const { data: existing } = await client.from('session_availability').select('*').eq('session_id', currentSessionId).eq('user_id', userState.id).in('available_date', targetDates);
                 const existingMap = {};
                 if (existing) existing.forEach(e => { 
@@ -1569,6 +1674,7 @@
                     let hasOverlap = false;
                     let tempIds = [];
 
+                    // 시간 겹침 검사 알고리즘
                     for (const slot of daySlots) {
                         if (tS < slot.end_time && tE > slot.start_time) {
                             hasOverlap = true;
@@ -1582,7 +1688,7 @@
                         ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: d, start_time: tS, end_time: tE, comment: cVal });
                     } else {
                         if (daySlots.length >= 3) {
-                            overLimitDates.push(d);
+                            overLimitDates.push(d); // 하루 3개 초과 제한
                         } else {
                             ps.push({ session_id: currentSessionId, user_id: userState.id, available_date: d, start_time: tS, end_time: tE, comment: cVal });
                         }
@@ -1598,6 +1704,7 @@
                     alert(`⚠️ 다음 날짜는 하루 최대 3개의 일정이 꽉 차서 무시되었습니다:\n${overLimitDates.join(', ')}`);
                 }
                 
+                // 트랜잭션 수행
                 if (toDeleteIds.length > 0) {
                     await client.from('session_availability').delete().in('id', toDeleteIds);
                 }
@@ -1729,7 +1836,9 @@
         window.cancelCustomCap = () => { document.getElementById('in-cap').value = '4'; window.toggleCustomCap(); };
         window.toggleRepeatCount = () => { toggle('in-confirm-count', document.getElementById('in-confirm-repeat').value !== 'none'); };
         
+        // [보안] 명시적인 '참여하기' 클릭을 통해 고스트 데이터 입력을 원천 차단
         window.joinSession = async (sId) => { 
+            // RLS 정책 준수를 위한 방어적 프로필 동기화(Upsert)
             const currentNick = document.getElementById('display-name').innerText === '동기화...' ? (userState.user_metadata?.full_name || userState.user_metadata?.name || '모험가') : document.getElementById('display-name').innerText;
             const aU = userState.user_metadata?.avatar_url || userState.user_metadata?.picture || '';
             const { error: uErr } = await client.from('users').upsert({ id: userState.id, nickname: currentNick, avatar_url: aU }, { onConflict: 'id' });
@@ -1744,6 +1853,7 @@
             await fetchGlobalData();
             renderRoom(); 
         };
+        
         window.leaveSession = async (sId) => { 
             const { error } = await client.from('session_members').delete().eq('session_id', sId).eq('user_id', userState.id); 
             if (error) return alert("참여 취소 실패: " + error.message);
